@@ -7,7 +7,7 @@
     "build": "next build && node scripts/postbuild.mjs",
     "start": "node .next/standalone/server.js",
     "lint": "eslint",
-    "typecheck": "tsc --noEmit",
+    "typecheck": "next typegen && tsc --noEmit",
     "db:start": "tsx scripts/db.ts",
     "db:migrate": "prisma migrate dev",
     "db:deploy": "prisma migrate deploy",
