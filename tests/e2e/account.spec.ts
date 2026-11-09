@@ -1,7 +1,9 @@
 import { expect, test } from "../support/pw";
 
 /** Item 9 do checklist: perfil editável e histórico de pedidos na área do cliente. */
-test("cliente edita os dados do perfil e vê o próprio pedido no histórico", async ({ page }) => {
+test("cliente edita os dados do perfil e vê o próprio pedido no histórico", async ({
+  page,
+}) => {
   const email = `perfil.${Date.now()}@test.local`;
   await page.goto("/cadastro");
   await page.getByLabel("Nome").fill("Perfil Original");

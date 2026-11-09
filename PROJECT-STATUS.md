@@ -17,10 +17,11 @@
 | Vitest unit | 55/55 |
 | Vitest integração (Postgres real) | 18/18 |
 | Playwright (api, Chromium desktop, Pixel 7, Firefox, WebKit, iPhone 14) | 145 testes, verdes localmente |
-| CI no GitHub | qualidade ✅ · Docker Compose ✅ · E2E e Lighthouse em execução |
+| CI no GitHub (09/11) | 4/4 jobs verdes: qualidade, testes (3 navegadores), Lighthouse, Docker Compose |
+| Lighthouse CI (mobile) | a11y e boas práticas 100 em todas; home perf 89 (aviso); SEO do produto 92 → corrigido |
 
 ## Pendente
-- Registrar no checklist o resultado do E2E e as notas do Lighthouse do CI.
+- Confirmar no próximo CI o SEO da página de produto (correção do streaming de metadados).
 - Mercado Pago com token sandbox real e webhook público (depende de conta do cliente).
 - Trocar dados de demonstração (depoimentos, cardápio, fotos) pelos reais antes de publicar.
 - Ativar o Playwright MCP (reiniciar o Claude Code e aprovar `.mcp.json`).
@@ -29,4 +30,4 @@
 - Máquina de desenvolvimento sem Docker e com pouca RAM: Docker e Lighthouse validados no CI.
 
 ## Próxima tarefa
-- Conferir o resultado completo do CI e fechar as linhas 14/15 e a seção de Lighthouse do checklist.
+- Push e conferir o SEO ≥ 95 do produto no CI; depois, só as pendências externas (Mercado Pago, dados reais).

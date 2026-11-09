@@ -18,15 +18,24 @@ apenas a afirmação. "✅" exige evidência executada; "⚠️" indica entrega 
 | 11 | API validada | ✅ | Zod em toda entrada, envelope de erro sem stack trace, JSON malformado 400, CSRF 403 — `tests/api/*.spec.ts` (21 testes) e sessão S8 da exploração |
 | 12 | Documentação completa | ✅ | README, ARCHITECTURE, DATABASE, SECURITY, QA-STRATEGY, SKILLS-RESEARCH, qa/EXPLORATORY-TESTING, qa/AUTOMATION, este checklist, PROJECT-STATUS |
 | 13 | Testes automatizados implementados | ✅ | Vitest 55 unit + 18 integração; Playwright 145 em 6 projetos (Chromium, Firefox, WebKit, Pixel 7, iPhone 14, API) |
-| 14 | Testes críticos passando | ✅ local · ⏳ CI | Local: unit 55/55, integração 18/18, Playwright 145 (todos os projetos verdes na última execução local). No CI: job de testes em execução — [Actions](https://github.com/Fabianooliveirasilva/Black-smoke-burguer-de-brasa/actions) |
-| 15 | CI configurado | ✅ | 4 jobs em [`.github/workflows/ci.yml`](../.github/workflows/ci.yml): qualidade ✅ e Docker Compose ✅ confirmados no GitHub; E2E e Lighthouse em execução — [Actions](https://github.com/Fabianooliveirasilva/Black-smoke-burguer-de-brasa/actions) |
+| 14 | Testes críticos passando | ✅ | Local: unit 55/55, integração 18/18, Playwright 145. CI ([execução de 09/11](https://github.com/Fabianooliveirasilva/Black-smoke-burguer-de-brasa/actions/runs/42552049236)): integração, build, API e E2E em Chromium, Firefox e WebKit ✅ |
+| 15 | CI configurado | ✅ | 4 jobs em [`.github/workflows/ci.yml`](../.github/workflows/ci.yml), todos verdes no GitHub ([execução de 09/11](https://github.com/Fabianooliveirasilva/Black-smoke-burguer-de-brasa/actions/runs/42552049236)): qualidade ✅ · testes ✅ · Lighthouse ✅ · Docker Compose ✅ |
 | 16 | Compila em produção | ✅ | `pnpm build` (standalone) local e no CI; imagem Docker multi-stage construída e **stack de produção validada no CI** (`docker compose up` + `scripts/compose-smoke.sh`: migrations, seed, login admin, pedido, upload no volume como não-root, 404 real) |
 | 17 | Responsividade validada | ✅ | 412 px (Pixel 7), iPhone 14, tablet 768/1024, 1366, 1920, 2560 — `mobile.spec.ts`, `responsive.spec.ts`; alvos de toque ≥ 28 px |
 | 18 | Sem vulnerabilidades críticas conhecidas sem tratamento | ✅ | `pnpm audit --prod --audit-level=high` no CI; revisão OWASP em [SECURITY.md](SECURITY.md); 6 bugs encontrados em QA, todos corrigidos e com teste |
 
 ## Metas de Lighthouse (§14)
 
-Medição movida para o CI (hardware do GitHub, mediana de 3 execuções mobile por página) no job **Lighthouse**; as notas saem como anotações e no resumo do job em [Actions](https://github.com/Fabianooliveirasilva/Black-smoke-burguer-de-brasa/actions). Acessibilidade e boas práticas < 95 **falham** o CI; performance e SEO < meta geram aviso. Resultado a ser registrado aqui após a primeira execução completa.
+Medido no CI (hardware do GitHub, mediana de 3 execuções mobile por página, build de produção) — [execução de 09/11](https://github.com/Fabianooliveirasilva/Black-smoke-burguer-de-brasa/actions/runs/42552049236). Acessibilidade e boas práticas < 95 **falham** o CI; performance e SEO < meta geram aviso.
+
+| Página | Performance (≥ 90) | Acessibilidade (≥ 95) | Boas práticas (≥ 95) | SEO (≥ 95) | LCP | CLS | TBT |
+|---|---|---|---|---|---|---|---|
+| `/` | 89 ⚠️ | 100 | 100 | 100 | 3,7 s | 0 | 50 ms |
+| `/cardapio` | 100 | 100 | 100 | 100 | 0,9 s | 0 | 40 ms |
+| `/cardapio/smoke-classic` | 90 | 100 | 100 | 92 → corrigido | 3,5 s | 0 | 120 ms |
+
+- **SEO 92 do produto (corrigido):** o Lighthouse 12 (e o PageSpeed Insights) usa um user-agent de Chrome comum, sem `Chrome-Lighthouse`, e só lê `head meta`. Como o Next transmite os metadados de `generateMetadata` dentro do `<body>` para navegadores comuns, a auditoria `meta-description` falhava. O streaming de metadados foi desligado (`htmlLimitedBots: /.*/` em `next.config.ts`); a única página afetada lê o produto de uma consulta em cache, então o custo é nulo. Teste de regressão em `tests/e2e/access.spec.ts`. A nota nova sai na próxima execução do CI.
+- **Performance 89 da home (aviso):** 1 ponto abaixo da meta, dentro da variação normal do Lighthouse em máquina compartilhada. O LCP é a foto do hero, já servida em AVIF (29 KB no mobile) com preload e `priority`. Revalidar no PageSpeed Insights com o domínio de produção (CDN e HTTP/2 tendem a melhorar o LCP).
 
 ## O que depende de recursos externos
 
