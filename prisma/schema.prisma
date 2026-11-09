@@ -1,0 +1,413 @@
+// Black Smoke Burger — data model.
+// Money is always stored as integer cents (Int). Never floats.
+
+generator client {
+  provider = "prisma-client"
+  output   = "../src/generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+// ───────────────────────────── Auth (Better Auth core tables) ─────────────────────────────
+
+enum UserRole {
+  customer
+  admin
+}
+
+model User {
+  id            String    @id
+  name          String
+  email         String    @unique
+  emailVerified Boolean   @default(false)
+  image         String?
+  role          UserRole  @default(customer)
+  phone         String?
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+  sessions      Session[]
+  accounts      Account[]
+  addresses     Address[]
+  orders        Order[]
+
+  @@map("user")
+}
+
+model Session {
+  id        String   @id
+  expiresAt DateTime
+  token     String   @unique
+  ipAddress String?
+  userAgent String?
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([userId])
+  @@map("session")
+}
+
+model Account {
+  id                    String    @id
+  accountId             String
+  providerId            String
+  userId                String
+  user                  User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  accessToken           String?
+  refreshToken          String?
+  idToken               String?
+  accessTokenExpiresAt  DateTime?
+  refreshTokenExpiresAt DateTime?
+  scope                 String?
+  password              String?
+  createdAt             DateTime  @default(now())
+  updatedAt             DateTime  @updatedAt
+
+  @@index([userId])
+  @@map("account")
+}
+
+model Verification {
+  id         String   @id
+  identifier String
+  value      String
+  expiresAt  DateTime
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  @@index([identifier])
+  @@map("verification")
+}
+
+model RateLimit {
+  id          String @id
+  key         String @unique
+  count       Int
+  lastRequest BigInt
+
+  @@map("rateLimit")
+}
+
+// ───────────────────────────── Customers ─────────────────────────────
+
+model Address {
+  id           String   @id @default(cuid())
+  userId       String
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  label        String   @db.VarChar(40)
+  street       String   @db.VarChar(120)
+  number       String   @db.VarChar(20)
+  complement   String?  @db.VarChar(80)
+  neighborhood String   @db.VarChar(80)
+  city         String   @db.VarChar(80)
+  cep          String   @db.VarChar(9)
+  reference    String?  @db.VarChar(120)
+  isDefault    Boolean  @default(false)
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  @@index([userId])
+}
+
+// ───────────────────────────── Catalog ─────────────────────────────
+
+model Category {
+  id        String    @id @default(cuid())
+  slug      String    @unique @db.VarChar(60)
+  name      String    @db.VarChar(60)
+  sortOrder Int       @default(0)
+  active    Boolean   @default(true)
+  products  Product[]
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+}
+
+model Product {
+  id                String              @id @default(cuid())
+  slug              String              @unique @db.VarChar(80)
+  name              String              @db.VarChar(80)
+  tagline           String?             @db.VarChar(140)
+  description       String              @db.VarChar(600)
+  priceCents        Int
+  imageUrl          String              @db.VarChar(300)
+  categoryId        String
+  category          Category            @relation(fields: [categoryId], references: [id], onDelete: Restrict)
+  isPopular         Boolean             @default(false)
+  isAvailable       Boolean             @default(true)
+  allowsDoneness    Boolean             @default(false)
+  sortOrder         Int                 @default(0)
+  deletedAt         DateTime? // soft delete: historical orders keep referencing the product
+  ingredients       ProductIngredient[]
+  options           ProductOption[]
+  orderItems        OrderItem[]
+  createdAt         DateTime            @default(now())
+  updatedAt         DateTime            @updatedAt
+
+  @@index([categoryId, deletedAt])
+  @@index([isPopular])
+}
+
+model ProductIngredient {
+  id        String  @id @default(cuid())
+  productId String
+  product   Product @relation(fields: [productId], references: [id], onDelete: Cascade)
+  name      String  @db.VarChar(60)
+  removable Boolean @default(true)
+  sortOrder Int     @default(0)
+
+  @@index([productId])
+}
+
+/// Paid add-ons ("adicionais").
+model ProductOption {
+  id          String            @id @default(cuid())
+  productId   String
+  product     Product           @relation(fields: [productId], references: [id], onDelete: Cascade)
+  name        String            @db.VarChar(60)
+  priceCents  Int
+  maxQuantity Int               @default(1)
+  active      Boolean           @default(true)
+  sortOrder   Int               @default(0)
+  orderItems  OrderItemOption[]
+
+  @@index([productId])
+}
+
+// ───────────────────────────── Orders ─────────────────────────────
+
+enum OrderStatus {
+  RECEIVED
+  PREPARING
+  ASSEMBLING
+  OUT_FOR_DELIVERY
+  READY_FOR_PICKUP
+  DELIVERED
+  CANCELED
+}
+
+enum Fulfillment {
+  DELIVERY
+  PICKUP
+}
+
+enum PaymentMethod {
+  PIX
+  CARD_ONLINE
+  CARD_ON_DELIVERY
+  CASH
+}
+
+enum PaymentStatus {
+  PENDING
+  PAID
+  FAILED
+  REFUNDED
+}
+
+enum Doneness {
+  RARE
+  MEDIUM
+  WELL_DONE
+}
+
+model Order {
+  id               String             @id @default(cuid())
+  number           Int                @unique @default(autoincrement())
+  /// Unguessable token used for public tracking URLs (prevents IDOR by enumeration).
+  trackingToken    String             @unique @db.VarChar(64)
+  userId           String?
+  user             User?              @relation(fields: [userId], references: [id], onDelete: SetNull)
+  customerName     String             @db.VarChar(80)
+  customerPhone    String             @db.VarChar(20)
+  customerEmail    String?            @db.VarChar(120)
+  fulfillment      Fulfillment
+  street           String?            @db.VarChar(120)
+  addressNumber    String?            @db.VarChar(20)
+  complement       String?            @db.VarChar(80)
+  neighborhood     String?            @db.VarChar(80)
+  city             String?            @db.VarChar(80)
+  cep              String?            @db.VarChar(9)
+  reference        String?            @db.VarChar(120)
+  deliveryZoneId   String?
+  deliveryZone     DeliveryZone?      @relation(fields: [deliveryZoneId], references: [id], onDelete: SetNull)
+  status           OrderStatus        @default(RECEIVED)
+  paymentMethod    PaymentMethod
+  paymentStatus    PaymentStatus      @default(PENDING)
+  changeForCents   Int?
+  subtotalCents    Int
+  discountCents    Int                @default(0)
+  deliveryFeeCents Int                @default(0)
+  totalCents       Int
+  couponId         String?
+  coupon           Coupon?            @relation(fields: [couponId], references: [id], onDelete: SetNull)
+  notes            String?            @db.VarChar(300)
+  cancelReason     String?            @db.VarChar(200)
+  items            OrderItem[]
+  events           OrderStatusEvent[]
+  payments         Payment[]
+  couponUsage      CouponUsage?
+  createdAt        DateTime           @default(now())
+  updatedAt        DateTime           @updatedAt
+
+  @@index([status, createdAt])
+  @@index([userId, createdAt])
+  @@index([createdAt])
+}
+
+model OrderItem {
+  id                 String            @id @default(cuid())
+  orderId            String
+  order              Order             @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  productId          String
+  product            Product           @relation(fields: [productId], references: [id], onDelete: Restrict)
+  productName        String            @db.VarChar(80)
+  basePriceCents     Int
+  unitPriceCents     Int
+  quantity           Int
+  lineTotalCents     Int
+  doneness           Doneness?
+  removedIngredients String[]
+  notes              String?           @db.VarChar(200)
+  options            OrderItemOption[]
+
+  @@index([orderId])
+  @@index([productId])
+}
+
+model OrderItemOption {
+  id          String         @id @default(cuid())
+  orderItemId String
+  orderItem   OrderItem      @relation(fields: [orderItemId], references: [id], onDelete: Cascade)
+  optionId    String?
+  option      ProductOption? @relation(fields: [optionId], references: [id], onDelete: SetNull)
+  name        String         @db.VarChar(60)
+  priceCents  Int
+  quantity    Int
+
+  @@index([orderItemId])
+}
+
+model OrderStatusEvent {
+  id        String      @id @default(cuid())
+  orderId   String
+  order     Order       @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  status    OrderStatus
+  note      String?     @db.VarChar(200)
+  actorId   String?
+  createdAt DateTime    @default(now())
+
+  @@index([orderId, createdAt])
+}
+
+// ───────────────────────────── Payments ─────────────────────────────
+
+model Payment {
+  id                String        @id @default(cuid())
+  orderId           String
+  order             Order         @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  provider          String        @db.VarChar(30)
+  method            PaymentMethod
+  status            PaymentStatus @default(PENDING)
+  providerPaymentId String?       @unique @db.VarChar(64)
+  providerStatus    String?       @db.VarChar(40)
+  idempotencyKey    String        @unique @db.VarChar(64)
+  amountCents       Int
+  pixQrCode         String?
+  pixQrCodeBase64   String?
+  checkoutUrl       String?       @db.VarChar(500)
+  expiresAt         DateTime?
+  createdAt         DateTime      @default(now())
+  updatedAt         DateTime      @updatedAt
+
+  @@index([orderId])
+}
+
+/// Processed webhook deliveries — guarantees idempotent handling.
+model WebhookEvent {
+  id          String   @id @default(cuid())
+  provider    String   @db.VarChar(30)
+  eventKey    String   @db.VarChar(160)
+  receivedAt  DateTime @default(now())
+
+  @@unique([provider, eventKey])
+}
+
+// ───────────────────────────── Promotions ─────────────────────────────
+
+enum CouponType {
+  PERCENT
+  FIXED
+}
+
+model Coupon {
+  id             String        @id @default(cuid())
+  code           String        @unique @db.VarChar(30)
+  description    String        @db.VarChar(140)
+  type           CouponType
+  /// PERCENT: 1–100. FIXED: amount in cents.
+  value          Int
+  minOrderCents  Int           @default(0)
+  maxUses        Int?
+  usesCount      Int           @default(0)
+  startsAt       DateTime?
+  expiresAt      DateTime?
+  active         Boolean       @default(true)
+  orders         Order[]
+  usages         CouponUsage[]
+  createdAt      DateTime      @default(now())
+  updatedAt      DateTime      @updatedAt
+}
+
+model CouponUsage {
+  id            String   @id @default(cuid())
+  couponId      String
+  coupon        Coupon   @relation(fields: [couponId], references: [id], onDelete: Cascade)
+  orderId       String   @unique
+  order         Order    @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  customerPhone String   @db.VarChar(20)
+  createdAt     DateTime @default(now())
+
+  @@index([couponId])
+}
+
+// ───────────────────────────── Store ─────────────────────────────
+
+model DeliveryZone {
+  id            String   @id @default(cuid())
+  name          String   @db.VarChar(60)
+  neighborhoods String[]
+  feeCents      Int
+  etaMinutes    Int
+  active        Boolean  @default(true)
+  sortOrder     Int      @default(0)
+  orders        Order[]
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+}
+
+/// Singleton row (id = 1).
+model StoreSettings {
+  id               Int      @id @default(1)
+  name             String   @db.VarChar(60)
+  phone            String   @db.VarChar(20)
+  whatsapp         String   @db.VarChar(20)
+  email            String   @db.VarChar(120)
+  street           String   @db.VarChar(120)
+  neighborhood     String   @db.VarChar(80)
+  city             String   @db.VarChar(80)
+  state            String   @db.VarChar(2)
+  cep              String   @db.VarChar(9)
+  latitude         Float
+  longitude        Float
+  /// [{ day: 0-6, open: "HH:MM", close: "HH:MM" }] in America/Sao_Paulo time.
+  openingHours     Json
+  ordersPaused     Boolean  @default(false)
+  deliveryEnabled  Boolean  @default(true)
+  pickupEnabled    Boolean  @default(true)
+  minOrderCents    Int      @default(0)
+  prepTimeMinutes  Int      @default(25)
+  updatedAt        DateTime @updatedAt
+}

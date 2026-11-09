@@ -1,0 +1,132 @@
+@import "tailwindcss";
+
+@theme {
+  --color-carvao: #15110e;
+  --color-fuligem: #221c18;
+  --color-cinza: #2e2722;
+  --color-osso: #f2ebdd;
+  --color-fumaca: #a39788;
+  --color-brasa: #ff6b2c;
+  --color-brasa-escura: #e2541a;
+  --color-kraft: #d9c3a0;
+  --color-kraft-escuro: #b89f78;
+  --color-tinta: #2a1d12;
+  --color-sangue: #8e2b1c;
+  --color-musgo: #6f8a4e;
+
+  --font-display: var(--font-big-shoulders), "Arial Narrow", sans-serif;
+  --font-sans: var(--font-schibsted), ui-sans-serif, system-ui, sans-serif;
+
+  --ease-brasa: cubic-bezier(0.22, 1, 0.36, 1);
+  --breakpoint-xs: 26rem;
+}
+
+@layer base {
+  html {
+    color-scheme: dark;
+    -webkit-text-size-adjust: 100%;
+    scroll-padding-top: 5rem;
+  }
+  body {
+    @apply bg-carvao text-osso font-sans antialiased;
+    font-feature-settings: "ss01";
+  }
+  ::selection {
+    @apply bg-brasa text-carvao;
+  }
+  :focus-visible {
+    outline: 2px solid var(--color-brasa);
+    outline-offset: 3px;
+  }
+  h1, h2, h3 {
+    text-wrap: balance;
+  }
+  p {
+    text-wrap: pretty;
+  }
+}
+
+@utility display {
+  font-family: var(--font-display);
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: -0.01em;
+  line-height: 0.88;
+}
+
+@utility tabular {
+  font-variant-numeric: lining-nums;
+}
+
+/* Kitchen-ticket paper: the brand's signature surface. */
+@utility ticket {
+  background-color: var(--color-kraft);
+  color: var(--color-tinta);
+  background-image:
+    radial-gradient(circle at 20% 10%, rgb(255 255 255 / 0.18), transparent 40%),
+    repeating-linear-gradient(0deg, rgb(42 29 18 / 0.025) 0 1px, transparent 1px 3px);
+  --tooth: 10px;
+  -webkit-mask:
+    conic-gradient(from -45deg at bottom, #0000, #000 1deg 89deg, #0000 90deg) bottom / var(--tooth) 51% repeat-x,
+    conic-gradient(from 135deg at top, #0000, #000 1deg 89deg, #0000 90deg) top / var(--tooth) 51% repeat-x;
+  mask:
+    conic-gradient(from -45deg at bottom, #0000, #000 1deg 89deg, #0000 90deg) bottom / var(--tooth) 51% repeat-x,
+    conic-gradient(from 135deg at top, #0000, #000 1deg 89deg, #0000 90deg) top / var(--tooth) 51% repeat-x;
+  padding-block: calc(var(--tooth) + 1rem);
+}
+
+@utility ticket-rule {
+  border-top: 1.5px dashed rgb(42 29 18 / 0.35);
+}
+
+@utility grain {
+  position: relative;
+  &::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    opacity: 0.07;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+/* Hero: the page's single orchestrated load moment (CSS-only, no JS, no hydration cost). */
+@media (prefers-reduced-motion: no-preference) {
+  .hero-line > span {
+    display: block;
+    animation: hero-rise 0.9s var(--ease-brasa) both;
+    animation-delay: calc(0.1s + var(--i) * 0.09s);
+  }
+  .hero-photo {
+    animation: hero-settle 1.6s var(--ease-brasa) both;
+  }
+  .badge-pop {
+    animation: badge-pop 0.35s var(--ease-brasa) both;
+  }
+  .sheet-in {
+    animation: sheet-in 0.2s ease-out both;
+  }
+}
+@keyframes badge-pop {
+  from { transform: scale(0.4); opacity: 0; }
+}
+@keyframes sheet-in {
+  from { transform: translateY(-8px); opacity: 0; }
+}
+@keyframes hero-rise {
+  from { transform: translateY(105%); }
+}
+/* Scale only: opacity animations on the LCP image delay Largest Contentful Paint. */
+@keyframes hero-settle {
+  from { transform: scale(1.06); }
+}

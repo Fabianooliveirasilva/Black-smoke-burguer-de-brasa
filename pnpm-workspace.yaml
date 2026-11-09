@@ -1,0 +1,8 @@
+onlyBuiltDependencies:
+  - sharp
+  - unrs-resolver
+  - prisma
+  - "@prisma/engines"
+  - "@prisma/client"
+  - esbuild
+  - "@embedded-postgres/linux-x64"

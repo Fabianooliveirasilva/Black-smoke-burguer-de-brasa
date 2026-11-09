@@ -1,0 +1,724 @@
+{
+ "S1": [
+  {
+   "step": "Itens no cardápio sem filtro",
+   "observed": "20 itens",
+   "screenshot": null,
+   "flag": null
+  },
+  {
+   "step": "Busca 'BACON'",
+   "observed": "2 resultado(s)",
+   "screenshot": null,
+   "flag": null
+  },
+  {
+   "step": "Busca 'hortela'",
+   "observed": "1 resultado(s)",
+   "screenshot": null,
+   "flag": null
+  },
+  {
+   "step": "Busca 'hortelã'",
+   "observed": "1 resultado(s)",
+   "screenshot": null,
+   "flag": null
+  },
+  {
+   "step": "Busca '  bacon  '",
+   "observed": "2 resultado(s)",
+   "screenshot": null,
+   "flag": null
+  },
+  {
+   "step": "Busca 'xyzxyz'",
+   "observed": "0 resultado(s)",
+   "screenshot": null,
+   "flag": null
+  },
+  {
+   "step": "Estado vazio da busca",
+   "observed": " cardápio Mais pedidos Disponíveis Ordenar por Ordem da casa Menor preço Maior preço Nome (A–Z)  0 produtos encontrados  NADA COM “XYZXYZ”  Tente outro ingrediente ou limpe os filtros.  Limpar filtros",
+   "screenshot": "s1_busca_vazia.png",
+   "flag": null
+  },
+  {
+   "step": "Busca '<img src=x onerror=alert(1)>'",
+   "observed": "0 resultado(s)",
+   "screenshot": null,
+   "flag": null
+  },
+  {
+   "step": "Busca com HTML",
+   "observed": "nenhum alert/dialog executado",
+   "screenshot": "s1_busca_xss.png",
+   "flag": null
+  },
+  {
+   "step": "Busca '%'",
+   "observed": "1 resultado(s)",
+   "screenshot": null,
+   "flag": null
+  },
+  {
+   "step": "Busca \"'; DROP TABLE\"",
+   "observed": "0 resultado(s)",
+   "screenshot": null,
+   "flag": null
+  },
+  {
+   "step": "Busca insensível a acento",
+   "observed": "'hortela'=1 · 'hortelã'=1",
+   "screenshot": null,
+   "flag": null
+  },
+  {
+   "step": "Filtro Bebidas",
+   "observed": "5 itens; URL=http://localhost:3000/cardapio",
+   "screenshot": "s1_filtro_bebidas.png",
+   "flag": null
+  },
+  {
+   "step": "Filtro Bebidas + busca 'bacon' (combinação sem interseção)",
+   "observed": "0 itens",
+   "screenshot": "s1_filtro_combinado.png",
+   "flag": null
+  },
+  {
+   "step": "Reload mantém filtros?",
+   "observed": "URL=http://localhost:3000/cardapio · busca='' · itens=20",
+   "screenshot": null,
+   "flag": "MELHORIA"
+  },
+  {
+   "step": "Opções de ordenação",
+   "observed": "Ordem da casa | Menor preço | Maior preço | Nome (A–Z)",
+   "screenshot": null,
+   "flag": null
+  },
+  {
+   "step": "Ordenação 'Menor preço'",
+   "observed": "ordenado dentro de cada categoria=True · ordenado globalmente=False",
+   "screenshot": null,
+   "flag": null
+  },
+  {
+   "step": "Ordenação 'Maior preço'",
+   "observed": "ordenado dentro de cada categoria=True · ordenado globalmente=False",
+   "screenshot": null,
+   "flag": null
+  },
+  {
+   "step": "Ordenar por preço em 'Tudo' mantém agrupamento por categoria",
+   "observed": "bebida de R$ 12,90 aparece depois de burger de R$ 33,90 — esperado pelo cliente?",
+   "screenshot": null,
+   "flag": "DÚVIDA"
+  },
+  {
+   "step": "Slug inexistente",
+   "observed": "HTTP 200 · título='Produto não encontrado · Black Smoke Burger' · meta robots=['noindex', 'noindex', 'index, follow']",
+   "screenshot": "s1_produto_404.png",
+   "flag": "BUG"
+  },
+  {
+   "step": "Rota inexistente — <title>",
+   "observed": "Black Smoke Burger — Burger de brasa em Pinheiros",
+   "screenshot": null,
+   "flag": "MELHORIA"
+  },
+  {
+   "step": "Erros de console na sessão",
+   "observed": [
+    "Failed to load resource: the server responded with a status of 404 (Not Found)"
+   ],
+   "screenshot": null,
+   "flag": null
+  },
+  {
+   "step": "duração",
+   "observed": "11s",
+   "screenshot": null,
+   "flag": null
+  }
+ ],
+ "S2": [
+  {
+   "step": "Quantidade mínima: botão '−' em 1",
+   "observed": "desabilitado",
+   "screenshot": null,
+   "flag": null
+  },
+  {
+   "step": "Quantidade máxima após 40 cliques em '+'",
+   "observed": "'+' desabilitado=True · botão=Adicionar R$ 778,00",
+   "screenshot": "s2_qtd_maxima.png",
+   "flag": null
+  },
+  {
+   "step": "Limite de adicional (Aumentar Blend extra 180 g)",
+   "observed": "travou após 1 cliques",
+   "screenshot": null,
+   "flag": null
+  },
+  {
+   "step": "Observação com 300 caracteres",
+   "observed": "aceitou 200 (maxlength=200)",
+   "screenshot": null,
+   "flag": null
+  },
+  {
+   "step": "Adicionar ao carrinho",
+   "observed": "20 item(ns) no badge",
+   "screenshot": "s2_adicionado.png",
+   "flag": null
+  },
+  {
+   "step": "Carrinho persiste após reload",
+   "observed": "20",
+   "screenshot": null,
+   "flag": null
+  },
+  {
+   "step": "Observação com HTML/emoji exibida no carrinho",
+   "observed": "SMOKE CLASSIC ·  · R$ 1.076,00 ·  · Ponto: ao ponto · + Blend extra 180 g · “<b>sem cebola</b> 🍔” · 20 · Editar · Remover",
+   "screenshot": "s2_carrinho_obs.png",
+   "flag": null
+  },
+  {
+   "step": "Erros de console",
+   "observed": "nenhum",
+   "screenshot": null,
+   "flag": null
+  },
+  {
+   "step": "duração",
+   "observed": "5s",
+   "screenshot": null,
+   "flag": null
+  }
+ ],
+ "S3": [
+  {
+   "step": "Cupom SMOKE10 com subtotal abaixo do mínimo (R$ 80)",
+   "observed": "SMOKE10: O subtotal não atinge o valor mínimo do cupom. Remover",
+   "screenshot": "s3_cupom_minimo.png",
+   "flag": null
+  },
+  {
+   "step": "Cupom inválido permanece 'aplicado' com botão Remover (campo some)",
+   "observed": "SMOKE10: O subtotal não atinge o valor mínimo do cupom. Remover",
+   "screenshot": null,
+   "flag": "DÚVIDA"
+  },
+  {
+   "step": "Cupom minúsculo com espaços",
+   "observed": "SMOKE10: O subtotal não atinge o valor mínimo do cupom. Remover",
+   "screenshot": null,
+   "flag": null
+  },
+  {
+   "step": "Cupom pendente revalidado ao atingir o mínimo",
+   "observed": "desconto=− R$ 10,00 · erro=False",
+   "screenshot": "s3_cupom_revalidado.png",
+   "flag": null
+  },
+  {
+   "step": "SMOKE10 com subtotal ≥ R$ 80",
+   "observed": "subtotal=R$ 122,70 desconto=− R$ 10,00",
+   "screenshot": "s3_cupom_aplicado.png",
+   "flag": null
+  },
+  {
+   "step": "Remover itens até ficar abaixo do mínimo com cupom aplicado",
+   "observed": "subtotal=R$ 12,90 · desconto=removido · msg=SMOKE10: O subtotal não atinge o valor mínimo do cupom. Remover",
+   "screenshot": "s3_cupom_abaixo_minimo.png",
+   "flag": null
+  },
+  {
+   "step": "Estrutura do carrinho no localStorage",
+   "observed": "chave=bsb-cart-v1 · {\"state\":{\"items\":[{\"productId\":\"cmw8g1yqq003yn1j90n92gb3s\",\"slug\":\"limonada-siciliana\",\"name\":\"Limonada Siciliana\",\"image\":\"/images/products/limonada.jpg\",\"basePriceCents\":1290,\"quantity\":1,\"options\":[],\"removedIngredie",
+   "screenshot": null,
+   "flag": null
+  },
+  {
+   "step": "Preço adulterado para 1 centavo no localStorage",
+   "observed": "preço adulterado=sim · subtotal exibido=R$ 12,90",
+   "screenshot": "s3_localstorage_adulterado.png",
+   "flag": null
+  },
+  {
+   "step": "Erros de console",
+   "observed": "nenhum",
+   "screenshot": null,
+   "flag": null
+  },
+  {
+   "step": "duração",
+   "observed": "12s",
+   "screenshot": null,
+   "flag": null
+  }
+ ],
+ "S4": [
+  {
+   "step": "Enviar checkout vazio",
+   "observed": "Informe seu nome | Telefone com DDD, ex.: (11) 91234-5678 | CEP com 8 dígitos | Escolha o bairro | Informe a rua | Informe o número | CHECKOUT",
+   "screenshot": "s4_checkout_vazio.png",
+   "flag": null
+  },
+  {
+   "step": "Foco após erro de validação",
+   "observed": "foco em: Nome",
+   "screenshot": null,
+   "flag": null
+  },
+  {
+   "step": "Celular '123', CEP '000', nome 'A'",
+   "observed": "Informe seu nome | Telefone com DDD, ex.: (11) 91234-5678 | CEP com 8 dígitos | Escolha o bairro | Informe a rua | Informe o número | CHECKOUT",
+   "screenshot": "s4_checkout_invalido.png",
+   "flag": null
+  },
+  {
+   "step": "Celular com letras",
+   "observed": "valor ficou '(11) 98765-1234'",
+   "screenshot": null,
+   "flag": null
+  },
+  {
+   "step": "Retirada com subtotal R$ 18,90 (< mínimo R$ 30)",
+   "observed": "Pedido mínimo de R$ 30,00. · checkout habilitado=False",
+   "screenshot": "s4_retirada_minimo.png",
+   "flag": "DÚVIDA"
+  },
+  {
+   "step": "Carrinho: escolher 'Retirar'",
+   "observed": "taxa=Grátis · total=R$ 57,80",
+   "screenshot": "s4_retirada_carrinho.png",
+   "flag": null
+  },
+  {
+   "step": "Checkout de retirada pede endereço?",
+   "observed": "campo Rua presente=False",
+   "screenshot": "s4_retirada_checkout.png",
+   "flag": null
+  },
+  {
+   "step": "Duplo clique em 'Fazer pedido'",
+   "observed": "POST /api/orders enviados: 1 ([201])",
+   "screenshot": "s4_pedido_criado.png",
+   "flag": null
+  },
+  {
+   "step": "Nome com <script> na comanda",
+   "observed": "renderizado como texto, sem execução",
+   "screenshot": null,
+   "flag": null
+  },
+  {
+   "step": "Cliente cancela pedido recebido",
+   "observed": "CANCELADO",
+   "screenshot": "s4_pedido_cancelado.png",
+   "flag": null
+  },
+  {
+   "step": "Voltar do navegador após pedido",
+   "observed": "URL=http://localhost:3000/checkout · badge=0",
+   "screenshot": null,
+   "flag": null
+  },
+  {
+   "step": "Token de acompanhamento inválido",
+   "observed": "HTTP 200 · h1=['SAIU DA CHAPA'] (UI de 404, status 200 — mesmo defeito do S1)",
+   "screenshot": "s4_token_invalido.png",
+   "flag": "BUG"
+  },
+  {
+   "step": "Acompanhamento por ID sequencial (IDOR)",
+   "observed": "HTTP 200 · dados de pedido expostos=False",
+   "screenshot": null,
+   "flag": null
+  },
+  {
+   "step": "Erros de console",
+   "observed": "nenhum",
+   "screenshot": null,
+   "flag": null
+  },
+  {
+   "step": "duração",
+   "observed": "16s",
+   "screenshot": null,
+   "flag": null
+  }
+ ],
+ "S5": [
+  {
+   "step": "Cadastro vazio",
+   "observed": "Informe seu nome | E-mail inválido | Mínimo de 10 caracteres",
+   "screenshot": "s5_cadastro_vazio.png",
+   "flag": null
+  },
+  {
+   "step": "E-mail inválido + senha '123'",
+   "observed": "E-mail inválido | Mínimo de 10 caracteres",
+   "screenshot": "s5_cadastro_invalido.png",
+   "flag": null
+  },
+  {
+   "step": "Cadastro com e-mail já existente",
+   "observed": "CRIAR CONTA Nome E-mail Senha  Mínimo de 10 caracteres.  Não foi possível criar a conta com esses dados.  Criar conta  Já tem conta? Entrar",
+   "screenshot": "s5_cadastro_duplicado.png",
+   "flag": null
+  },
+  {
+   "step": "Cadastro válido",
+   "observed": "URL=http://localhost:3000/conta",
+   "screenshot": "s5_cadastro_ok.png",
+   "flag": null
+  },
+  {
+   "step": "Cliente comum acessa /admin",
+   "observed": "HTTP 200 · URL=http://localhost:3000/",
+   "screenshot": "s5_cliente_admin.png",
+   "flag": null
+  },
+  {
+   "step": "Cliente comum chama GET /api/admin/orders",
+   "observed": "HTTP 403",
+   "screenshot": null,
+   "flag": null
+  },
+  {
+   "step": "Login com senha errada",
+   "observed": "E-mail ou senha incorretos. | ",
+   "screenshot": "s5_login_errado.png",
+   "flag": null
+  },
+  {
+   "step": "Login com e-mail inexistente (enumeração)",
+   "observed": "mesma mensagem=True (E-mail ou senha incorretos. | )",
+   "screenshot": null,
+   "flag": null
+  },
+  {
+   "step": "12 tentativas de login seguidas (força bruta)",
+   "observed": "[401, 401, 401, 429, 429, 429, 429, 429, 429, 429, 429, 429]",
+   "screenshot": null,
+   "flag": null
+  },
+  {
+   "step": "Anônimo chama GET /api/admin/orders",
+   "observed": "HTTP 401",
+   "screenshot": null,
+   "flag": null
+  },
+  {
+   "step": "duração",
+   "observed": "17s",
+   "screenshot": null,
+   "flag": null
+  }
+ ],
+ "S6": [
+  {
+   "step": "Dashboard — textos",
+   "observed": "3 pedidos · Ticket médio · 0.0% cancelados · Todos os pedidos",
+   "screenshot": "s6_dashboard.png",
+   "flag": null
+  },
+  {
+   "step": "Formato de porcentagem",
+   "observed": "0.0% cancelados — separador decimal '.' em pt-BR",
+   "screenshot": null,
+   "flag": "BUG"
+  },
+  {
+   "step": "Filtro de pedidos por nome",
+   "observed": "2 linha(s)",
+   "screenshot": null,
+   "flag": null
+  },
+  {
+   "step": "Filtro com data inicial > final",
+   "observed": "0 linha(s) · msg=['']",
+   "screenshot": "s6_filtro_datas_invertidas.png",
+   "flag": null
+  },
+  {
+   "step": "Criar produto vazio",
+   "observed": "Nome: [nativo] Please fill out this field. | Slug (URL): [nativo] Please fill out this field. | Descrição: [nativo] Please fill out this field. | Preço (R$): [nativo] Please fill out this field.",
+   "screenshot": "s6_produto_vazio.png",
+   "flag": null
+  },
+  {
+   "step": "Preço negativo",
+   "observed": "Preço inválido.",
+   "screenshot": "s6_produto_preco_negativo.png",
+   "flag": null
+  },
+  {
+   "step": "Preço R$ 99.999.999",
+   "observed": "priceCents: Too big: expected number to be <=1000000",
+   "screenshot": null,
+   "flag": null
+  },
+  {
+   "step": "Slug com path traversal",
+   "observed": "slug: Use letras minúsculas, números e hífens",
+   "screenshot": null,
+   "flag": null
+  },
+  {
+   "step": "Cupom percentual de 150%",
+   "observed": "value: Percentual deve ser 1–100",
+   "screenshot": "s6_cupom_150.png",
+   "flag": null
+  },
+  {
+   "step": "Cupom com fim antes do início",
+   "observed": "expiresAt: Fim deve ser após o início · cupom criado=False",
+   "screenshot": "s6_cupom_datas.png",
+   "flag": null
+  },
+  {
+   "step": "Cupom com código duplicado",
+   "observed": "Já existe um registro com esses dados.",
+   "screenshot": null,
+   "flag": null
+  },
+  {
+   "step": "Console em /admin/loja (dev mostrava '1 Issue')",
+   "observed": [
+    "Failed to load resource: the server responded with a status of 422 (Unprocessable Entity)",
+    "Failed to load resource: the server responded with a status of 422 (Unprocessable Entity)",
+    "Failed to load resource: the server responded with a status of 422 (Unprocessable Entity)",
+    "Failed to load resource: the server responded with a status of 422 (Unprocessable Entity)",
+    "Failed to load resource: the server responded with a status of 409 (Conflict)"
+   ],
+   "screenshot": null,
+   "flag": null
+  },
+  {
+   "step": "Loja pausada — cliente no checkout",
+   "observed": "aviso=Pedidos pausados no momento. · botão de pedido habilitado=False",
+   "screenshot": "s6_loja_pausada_checkout.png",
+   "flag": null
+  },
+  {
+   "step": "Loja pausada — home avisa?",
+   "observed": "sim",
+   "screenshot": "s6_loja_pausada_home.png",
+   "flag": null
+  },
+  {
+   "step": "Loja reaberta (limpeza)",
+   "observed": "pausa desmarcada",
+   "screenshot": null,
+   "flag": null
+  },
+  {
+   "step": "Erros de console",
+   "observed": [
+    "Failed to load resource: the server responded with a status of 422 (Unprocessable Entity)",
+    "Failed to load resource: the server responded with a status of 422 (Unprocessable Entity)",
+    "Failed to load resource: the server responded with a status of 422 (Unprocessable Entity)",
+    "Failed to load resource: the server responded with a status of 422 (Unprocessable Entity)",
+    "Failed to load resource: the server responded with a status of 409 (Conflict)"
+   ],
+   "screenshot": null,
+   "flag": null
+  },
+  {
+   "step": "duração",
+   "observed": "25s",
+   "screenshot": null,
+   "flag": null
+  }
+ ],
+ "S7": [
+  {
+   "step": "Overflow horizontal /",
+   "observed": "scrollWidth=412px (viewport 412)",
+   "screenshot": "s7_mobile_.png",
+   "flag": null
+  },
+  {
+   "step": "Overflow horizontal /cardapio",
+   "observed": "scrollWidth=412px (viewport 412)",
+   "screenshot": "s7_mobile_cardapio.png",
+   "flag": null
+  },
+  {
+   "step": "Overflow horizontal /cardapio/brasa-bacon",
+   "observed": "scrollWidth=412px (viewport 412)",
+   "screenshot": "s7_mobile_cardapio_brasa-bacon.png",
+   "flag": null
+  },
+  {
+   "step": "Overflow horizontal /carrinho",
+   "observed": "scrollWidth=412px (viewport 412)",
+   "screenshot": "s7_mobile_carrinho.png",
+   "flag": null
+  },
+  {
+   "step": "Overflow horizontal /checkout",
+   "observed": "scrollWidth=412px (viewport 412)",
+   "screenshot": "s7_mobile_checkout.png",
+   "flag": null
+  },
+  {
+   "step": "Overflow horizontal /entrar",
+   "observed": "scrollWidth=412px (viewport 412)",
+   "screenshot": "s7_mobile_entrar.png",
+   "flag": null
+  },
+  {
+   "step": "Menu mobile aberto",
+   "observed": "ok",
+   "screenshot": "s7_menu_aberto.png",
+   "flag": null
+  },
+  {
+   "step": "Barra fixa do carrinho no mobile",
+   "observed": "Ver pedido · 1 item R$ 38,90",
+   "screenshot": "s7_barra_carrinho.png",
+   "flag": null
+  },
+  {
+   "step": "Alvos de toque < 24 px (WCAG 2.5.8) em /cardapio",
+   "observed": [
+    "Pular para o conteúdo",
+    "Cardápio completo",
+    "Seu pedido",
+    "Minha conta",
+    "Entrar",
+    "Unsplash",
+    "Mixkit"
+   ],
+   "screenshot": null,
+   "flag": "MELHORIA"
+  },
+  {
+   "step": "Ordem de Tab na home (6 primeiros)",
+   "observed": "Pular para o conteúdo → BLACK SMOKE\nBURGER DE BRASA → Cardápio → Como fazemos → Promoções → Onde estamos",
+   "screenshot": "s7_foco_teclado.png",
+   "flag": null
+  },
+  {
+   "step": "prefers-reduced-motion",
+   "observed": "0 animações rodando",
+   "screenshot": null,
+   "flag": null
+  },
+  {
+   "step": "duração",
+   "observed": "13s",
+   "screenshot": null,
+   "flag": null
+  }
+ ],
+ "S8": [
+  {
+   "step": "GET /api/menu",
+   "observed": "chaves=['categories']",
+   "screenshot": null,
+   "flag": null
+  },
+  {
+   "step": "POST /api/orders · quantidade 0",
+   "observed": "HTTP 422 · {\"error\":{\"code\":\"VALIDATION_ERROR\",\"message\":\"Dados inválidos.\",\"details\":[{\"path\":\"items.0.quantity\",\"message\":\"Too small: expected number to be >=1\"}]}}",
+   "screenshot": null,
+   "flag": null
+  },
+  {
+   "step": "POST /api/orders · quantidade -1",
+   "observed": "HTTP 422 · {\"error\":{\"code\":\"VALIDATION_ERROR\",\"message\":\"Dados inválidos.\",\"details\":[{\"path\":\"items.0.quantity\",\"message\":\"Too small: expected number to be >=1\"}]}}",
+   "screenshot": null,
+   "flag": null
+  },
+  {
+   "step": "POST /api/orders · quantidade 1000",
+   "observed": "HTTP 422 · {\"error\":{\"code\":\"VALIDATION_ERROR\",\"message\":\"Dados inválidos.\",\"details\":[{\"path\":\"items.0.quantity\",\"message\":\"Too big: expected number to be <=20\"}]}}",
+   "screenshot": null,
+   "flag": null
+  },
+  {
+   "step": "POST /api/orders · quantidade 1.5",
+   "observed": "HTTP 422 · {\"error\":{\"code\":\"VALIDATION_ERROR\",\"message\":\"Dados inválidos.\",\"details\":[{\"path\":\"items.0.quantity\",\"message\":\"Invalid input: expected int, received number\"}]}}",
+   "screenshot": null,
+   "flag": null
+  },
+  {
+   "step": "POST /api/orders · productId inexistente",
+   "observed": "HTTP 422 · {\"error\":{\"code\":\"PRODUCT_NOT_FOUND\",\"message\":\"Produto não encontrado.\"}}",
+   "screenshot": null,
+   "flag": null
+  },
+  {
+   "step": "POST /api/orders · lista de itens vazia",
+   "observed": "HTTP 422 · {\"error\":{\"code\":\"VALIDATION_ERROR\",\"message\":\"Dados inválidos.\",\"details\":[{\"path\":\"items\",\"message\":\"Carrinho vazio\"}]}}",
+   "screenshot": null,
+   "flag": null
+  },
+  {
+   "step": "POST /api/orders · campo extra totalCents=1",
+   "observed": "HTTP 201 · {\"number\":6,\"trackingToken\":\"b-cLrZl--rxqlkNa6scl6dRwuCmMbICc\",\"totalCents\":4580,\"paymentError\":null}",
+   "screenshot": null,
+   "flag": null
+  },
+  {
+   "step": "POST /api/orders · cupom inexistente",
+   "observed": "HTTP 422 · {\"error\":{\"code\":\"COUPON_INVALID\",\"message\":\"Cupom inválido.\"}}",
+   "screenshot": null,
+   "flag": null
+  },
+  {
+   "step": "POST /api/orders · troco menor que o total",
+   "observed": "HTTP 422 · {\"error\":{\"code\":\"INVALID_CHANGE\",\"message\":\"O valor para troco deve ser maior que o total.\"}}",
+   "screenshot": null,
+   "flag": null
+  },
+  {
+   "step": "POST /api/orders com JSON malformado",
+   "observed": "HTTP 400 · {\"error\":{\"code\":\"INVALID_JSON\",\"message\":\"Corpo da requisição inválido.\"}}",
+   "screenshot": null,
+   "flag": null
+  },
+  {
+   "step": "POST /api/orders com Origin de outro site",
+   "observed": "HTTP 403",
+   "screenshot": null,
+   "flag": null
+  },
+  {
+   "step": "Webhook sem assinatura",
+   "observed": "HTTP 200 · outcome=ignored (MP não configurado neste ambiente → ignorado; assinatura coberta por tests/integration/webhook.test.ts)",
+   "screenshot": null,
+   "flag": null
+  },
+  {
+   "step": "Path traversal em /media",
+   "observed": "HTTP 404",
+   "screenshot": null,
+   "flag": null
+  },
+  {
+   "step": "Headers de segurança na home",
+   "observed": "content-security-policy=✓ · x-content-type-options=✓ · referrer-policy=✓ · x-frame-options=✓ · permissions-policy=✓",
+   "screenshot": null,
+   "flag": null
+  },
+  {
+   "step": "Header X-Powered-By",
+   "observed": "ausente",
+   "screenshot": null,
+   "flag": null
+  },
+  {
+   "step": "duração",
+   "observed": "3s",
+   "screenshot": null,
+   "flag": null
+  }
+ ]
+}
