@@ -4,6 +4,7 @@ import { adminOrdersQuery } from "@/schemas/order";
 import { listOrders } from "@/server/admin";
 import { STATUS_LABEL } from "@/server/order-status";
 import { formatBRL } from "@/lib/money";
+import { plural } from "@/lib/format";
 import { StatusBadge } from "@/components/admin/status-badge";
 import { AutoRefresh } from "@/components/admin/auto-refresh";
 import { buttonClass } from "@/components/ui/button";
@@ -19,6 +20,7 @@ export default async function OrdersPage({ searchParams }: PageProps<"/admin/ped
   const parsed = adminOrdersQuery.safeParse(Object.fromEntries(Object.entries(raw).map(([k, v]) => [k, Array.isArray(v) ? v[0] : v]).filter(([, v]) => v)));
   const q = parsed.success ? parsed.data : adminOrdersQuery.parse({});
   const { orders, total, page, pageSize } = await listOrders(q);
+  const invertedRange = !!q.from && !!q.to && q.from > q.to; // ISO dates compare lexicographically
   const pages = Math.max(1, Math.ceil(total / pageSize));
   const qs = (p: number) => new URLSearchParams({ ...Object.fromEntries(Object.entries(q).filter(([, v]) => v !== undefined).map(([k, v]) => [k, String(v)])), page: String(p) }).toString();
 
@@ -43,7 +45,13 @@ export default async function OrdersPage({ searchParams }: PageProps<"/admin/ped
         <button className={buttonClass("primary", "sm", "h-10")}>Filtrar</button>
         <Link href="/admin/pedidos" className={buttonClass("ghost", "sm", "h-10")}>Limpar</Link>
       </form>
-      <p className="text-sm text-fumaca">{total} pedido(s)</p>
+      {invertedRange ? (
+        <p role="alert" className="rounded-xl bg-sangue/25 p-3 text-sm" data-testid="date-range-error">
+          A data &quot;De&quot; é posterior à data &quot;Até&quot;. Inverta as datas para ver os pedidos do período.
+        </p>
+      ) : (
+        <p className="text-sm text-fumaca">{plural(total, "pedido", "pedidos")}</p>
+      )}
       <div className="overflow-x-auto rounded-3xl bg-fuligem">
         <table className="w-full min-w-[46rem] text-left text-sm">
           <thead className="text-fumaca">

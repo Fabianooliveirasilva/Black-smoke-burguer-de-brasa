@@ -1,4 +1,5 @@
 "use client";
+import { useConfirm } from "@/components/ui/confirm-dialog";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { useForm, useWatch } from "react-hook-form";
@@ -17,6 +18,7 @@ interface FormV { code: string; description: string; type: "PERCENT" | "FIXED"; 
 const day = (iso: string | null) => (iso ? new Date(iso).toLocaleDateString("pt-BR", { timeZone: "America/Sao_Paulo" }) : "—");
 
 export function CouponManager({ coupons }: { coupons: Coupon[] }) {
+  const [confirmDialog, dialog] = useConfirm();
   const router = useRouter();
   const [error, setError] = useState<string | null>(null);
   const { register, handleSubmit, reset, control } = useForm<FormV>({ defaultValues: { type: "PERCENT", minOrder: "0", maxUses: "", value: "", code: "", description: "", startsAt: "", expiresAt: "" } });
@@ -35,6 +37,7 @@ export function CouponManager({ coupons }: { coupons: Coupon[] }) {
 
   return (
     <div className="grid gap-8 xl:grid-cols-[1.5fr_1fr]">
+      {dialog}
       <div className="overflow-x-auto rounded-3xl bg-fuligem">
         <table className="w-full min-w-[40rem] text-left text-sm">
           <thead className="text-fumaca"><tr className="border-b border-osso/10"><th className="px-5 py-3 font-medium">Código</th><th className="px-3 py-3 font-medium">Desconto</th><th className="px-3 py-3 font-medium">Uso</th><th className="px-3 py-3 font-medium">Validade</th><th className="px-3 py-3 font-medium">Ativo</th><th /></tr></thead>
@@ -46,7 +49,7 @@ export function CouponManager({ coupons }: { coupons: Coupon[] }) {
                 <td className="px-3 py-3">{c.usesCount}{c.maxUses ? ` / ${c.maxUses}` : ""}</td>
                 <td className="px-3 py-3 text-fumaca">{day(c.startsAt)} → {day(c.expiresAt)}</td>
                 <td className="px-3 py-3"><Switch label={`Cupom ${c.code} ativo`} checked={c.active} onChange={(v) => run(() => api(`/api/admin/coupons/${c.id}`, "PATCH", { active: v }))} /></td>
-                <td className="px-3 py-3"><button type="button" className="text-fumaca underline hover:text-osso" onClick={() => confirm(`Excluir ${c.code}? Cupons já usados são apenas desativados.`) && run(() => api(`/api/admin/coupons/${c.id}`, "DELETE"))}>Excluir</button></td>
+                <td className="px-3 py-3"><button type="button" className="text-fumaca underline hover:text-osso" onClick={async () => (await confirmDialog({ title: `Excluir ${c.code}?`, body: "Cupons já usados são apenas desativados.", confirmLabel: "Excluir cupom" })) && run(() => api(`/api/admin/coupons/${c.id}`, "DELETE"))}>Excluir</button></td>
               </tr>
             ))}
           </tbody>

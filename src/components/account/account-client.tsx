@@ -1,4 +1,5 @@
 "use client";
+import { HydrationGate } from "@/components/ui/hydration-gate";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
@@ -37,6 +38,7 @@ export function AccountClient({ profile, addresses, isAdmin }: { profile: { name
 
   return (
     <div className="flex flex-col gap-12">
+      <HydrationGate>
       <section aria-labelledby="perfil">
         <h2 id="perfil" className="display text-4xl">Dados</h2>
         <p className="mt-2 text-sm text-fumaca">{profile.email}</p>
@@ -141,6 +143,7 @@ export function AccountClient({ profile, addresses, isAdmin }: { profile: { name
           Sair da conta
         </Button>
       </div>
+      </HydrationGate>
     </div>
   );
 }

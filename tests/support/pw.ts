@@ -60,3 +60,15 @@ export async function orderPayload(api: APIRequestContext, over: Record<string, 
     ...over,
   };
 }
+
+/**
+ * Navigates and waits until the page's interactive island reports `data-hydrated="true"`.
+ * Server-rendered controls exist before React attaches; acting on them earlier races hydration
+ * (counts read from SSR markup, cart badge not yet rendered). Tests that deliberately type
+ * BEFORE hydration (BUG-05) must use plain page.goto().
+ */
+export async function gotoReady(page: import("@playwright/test").Page, url: string) {
+  const res = await page.goto(url);
+  await page.locator('[data-hydrated="true"]').first().waitFor({ state: "attached" });
+  return res;
+}

@@ -3,6 +3,7 @@ import { prisma } from "@/lib/prisma";
 import { HttpError } from "@/lib/http";
 import { cancelByCustomer, createOrder, getOrderByToken, updateOrderStatus } from "@/server/orders";
 import { alwaysOpenHours } from "../../prisma/seed-data";
+import type { CreateOrderInput } from "@/schemas/order";
 import { catalog, deliveryInput } from "../support/fixtures";
 
 const code = (p: Promise<unknown>) => p.then(() => "OK", (e) => (e instanceof HttpError ? e.code : (e as { code?: string }).code ?? String(e)));
@@ -51,6 +52,11 @@ describe("createOrder", () => {
 
     const small = await deliveryInput({ items: [{ productId: fries.id, quantity: 1, options: [], removedIngredientIds: [], doneness: null, notes: null }] });
     expect(await code(createOrder(small, null))).toBe("BELOW_MINIMUM_ORDER");
+
+    // D-02: the minimum covers delivery cost; pickup has no minimum.
+    const { customer, paymentMethod, changeForCents, couponCode, notes } = small;
+    const pickup: CreateOrderInput = { fulfillment: "PICKUP", customer, items: small.items, paymentMethod, changeForCents, couponCode, notes };
+    expect(await code(createOrder(pickup, null))).toBe("OK");
   });
 
   it("never lets concurrent orders exceed a coupon's usage limit", async () => {

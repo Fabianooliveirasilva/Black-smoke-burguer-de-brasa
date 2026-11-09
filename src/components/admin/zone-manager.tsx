@@ -1,4 +1,5 @@
 "use client";
+import { useConfirm } from "@/components/ui/confirm-dialog";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { useForm } from "react-hook-form";
@@ -11,6 +12,7 @@ import { Switch } from "./switch";
 interface Zone { id: string; name: string; neighborhoods: string[]; feeCents: number; etaMinutes: number; active: boolean }
 
 export function ZoneManager({ zones }: { zones: Zone[] }) {
+  const [confirmDialog, dialog] = useConfirm();
   const router = useRouter();
   const [error, setError] = useState<string | null>(null);
   const { register, handleSubmit, reset } = useForm({ defaultValues: { name: "", neighborhoods: "", fee: "", eta: 40 } });
@@ -27,6 +29,7 @@ export function ZoneManager({ zones }: { zones: Zone[] }) {
   };
   return (
     <section className="rounded-3xl bg-fuligem p-6" aria-labelledby="zonas">
+      {dialog}
       <h2 id="zonas" className="display text-3xl">Áreas de entrega</h2>
       <ul className="mt-4 divide-y divide-osso/8">
         {zones.map((z) => (
@@ -37,7 +40,7 @@ export function ZoneManager({ zones }: { zones: Zone[] }) {
             </div>
             <div className="flex items-center gap-3">
               <Switch label={`Zona ${z.name} ativa`} checked={z.active} onChange={(v) => run(() => api(`/api/admin/delivery-zones/${z.id}`, "PATCH", { active: v }))} />
-              <button type="button" className="text-sm text-fumaca underline hover:text-osso" onClick={() => confirm(`Excluir ${z.name}?`) && run(() => api(`/api/admin/delivery-zones/${z.id}`, "DELETE"))}>Excluir</button>
+              <button type="button" className="text-sm text-fumaca underline hover:text-osso" onClick={async () => (await confirmDialog({ title: `Excluir ${z.name}?`, body: "Bairros desta área deixam de receber entregas.", confirmLabel: "Excluir área" })) && run(() => api(`/api/admin/delivery-zones/${z.id}`, "DELETE"))}>Excluir</button>
             </div>
           </li>
         ))}

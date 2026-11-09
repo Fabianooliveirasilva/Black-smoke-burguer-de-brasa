@@ -50,7 +50,8 @@ export async function createOrder(input: CreateOrderInput, userId: string | null
   }
 
   const pre = computeTotals({ lines, deliveryFeeCents, discountCents: 0 });
-  if (pre.subtotalCents < settings.minOrderCents) {
+  // The minimum covers the cost of delivering; pickup orders have no minimum (decision D-02).
+  if (input.fulfillment === "DELIVERY" && pre.subtotalCents < settings.minOrderCents) {
     throw new HttpError(422, "BELOW_MINIMUM_ORDER", "O pedido não atinge o valor mínimo.");
   }
 

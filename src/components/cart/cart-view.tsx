@@ -37,7 +37,8 @@ export function CartView({ config }: { config: CheckoutConfig }) {
   const effective: "DELIVERY" | "PICKUP" = !config.deliveryEnabled ? "PICKUP" : !config.pickupEnabled ? "DELIVERY" : fulfillment;
   const zoneValid = config.zones.some((z) => z.id === deliveryZoneId);
   const lineErrors = quote?.lines.filter((l) => l.error) ?? [];
-  const belowMin = quote ? quote.subtotalCents < config.minOrderCents : false;
+  // Minimum applies to delivery only (D-02) — same rule as createOrder on the server.
+  const belowMin = quote && effective === "DELIVERY" ? quote.subtotalCents < config.minOrderCents : false;
   const canCheckout = config.open && !!quote && lineErrors.length === 0 && !belowMin && (effective === "PICKUP" || zoneValid);
 
   return (
@@ -207,7 +208,7 @@ export function CartView({ config }: { config: CheckoutConfig }) {
         <div className="mt-6 flex flex-col gap-2">
           {error && <p className="text-sm text-sangue" role="alert">{error}</p>}
           {!config.open && <p className="text-sm font-semibold text-sangue">{config.closedReason}</p>}
-          {belowMin && <p className="text-sm text-sangue">Pedido mínimo de {formatBRL(config.minOrderCents)}.</p>}
+          {belowMin && <p className="text-sm text-sangue">Pedido mínimo para entrega: {formatBRL(config.minOrderCents)}. Na retirada não há mínimo.</p>}
           {canCheckout ? (
             <ButtonLink href="/checkout" variant="ink" size="lg" className="w-full" data-testid="go-checkout">
               Continuar para o checkout

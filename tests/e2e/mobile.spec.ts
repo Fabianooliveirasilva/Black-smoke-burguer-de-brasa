@@ -39,3 +39,11 @@ test("touch targets on the product page are at least 36px", async ({ page }) => 
   );
   expect(small).toEqual([]);
 });
+
+test("M-06: links do rodapé têm alvo de toque de pelo menos 24 px (WCAG 2.5.8) sem colidir", async ({ page }) => {
+  await page.goto("/cardapio");
+  const boxes = await page.getByRole("navigation", { name: "Rodapé" }).getByRole("link").evaluateAll((els) => els.map((e) => e.getBoundingClientRect()).map((r) => ({ top: r.top, height: r.height })));
+  expect(boxes.length).toBeGreaterThanOrEqual(4);
+  for (const b of boxes) expect(b.height).toBeGreaterThanOrEqual(28);
+  for (let i = 1; i < boxes.length; i++) expect(boxes[i].top).toBeGreaterThanOrEqual(boxes[i - 1].top + boxes[i - 1].height - 0.5);
+});

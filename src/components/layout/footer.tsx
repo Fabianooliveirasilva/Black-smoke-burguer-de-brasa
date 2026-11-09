@@ -71,10 +71,10 @@ export function Footer() {
         <nav aria-label="Rodapé">
           <h2 className="mb-4 font-semibold">Navegação</h2>
           <ul className="flex flex-col gap-2 text-fumaca">
-            <li><Link className="hover:text-osso" href="/cardapio">Cardápio completo</Link></li>
-            <li><Link className="hover:text-osso" href="/carrinho">Seu pedido</Link></li>
-            <li><Link className="hover:text-osso" href="/conta">Minha conta</Link></li>
-            <li><Link className="hover:text-osso" href="/entrar">Entrar</Link></li>
+            <li><Link className="-my-1 inline-block py-1 hover:text-osso" href="/cardapio">Cardápio completo</Link></li>
+            <li><Link className="-my-1 inline-block py-1 hover:text-osso" href="/carrinho">Seu pedido</Link></li>
+            <li><Link className="-my-1 inline-block py-1 hover:text-osso" href="/conta">Minha conta</Link></li>
+            <li><Link className="-my-1 inline-block py-1 hover:text-osso" href="/entrar">Entrar</Link></li>
           </ul>
         </nav>
       </div>

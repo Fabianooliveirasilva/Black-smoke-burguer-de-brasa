@@ -1,7 +1,9 @@
 "use client";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
-import { useState } from "react";
+import { useState, useRef } from "react";
+import { useAdoptTypedValue } from "@/hooks/use-adopt-typed-value";
+import { useMounted } from "@/hooks/use-mounted";
 import { Check } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Stepper } from "@/components/ui/stepper";
@@ -33,6 +35,9 @@ function CustomizerForm({ product, existing }: { product: MenuProduct; existing?
   const [removed, setRemoved] = useState<string[]>(existing?.removedIngredientIds ?? []);
   const [quantity, setQuantity] = useState(existing?.quantity ?? 1);
   const [notes, setNotes] = useState(existing?.notes ?? "");
+  const notesRef = useRef<HTMLTextAreaElement>(null);
+  const mounted = useMounted();
+  useAdoptTypedValue(notesRef, notes, setNotes);
   const [added, setAdded] = useState(false);
 
   const options = product.options
@@ -67,6 +72,7 @@ function CustomizerForm({ product, existing }: { product: MenuProduct; existing?
 
   return (
     <form
+      data-hydrated={mounted}
       className="mt-10 flex flex-col gap-10 border-t border-osso/10 pt-10"
       onSubmit={(e) => {
         e.preventDefault();
@@ -140,6 +146,7 @@ function CustomizerForm({ product, existing }: { product: MenuProduct; existing?
         </label>
         <textarea
           id="notes"
+          ref={notesRef}
           value={notes}
           maxLength={200}
           onChange={(e) => setNotes(e.target.value)}

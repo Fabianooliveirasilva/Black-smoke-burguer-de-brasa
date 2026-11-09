@@ -1,4 +1,5 @@
 "use client";
+import { HydrationGate } from "@/components/ui/hydration-gate";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { useFieldArray, useForm } from "react-hook-form";
@@ -39,6 +40,7 @@ export function SettingsForm({ initial }: { initial: Settings }) {
         }
       })}
     >
+      <HydrationGate>
       <section className="rounded-3xl bg-fuligem p-6">
         <h2 className="display text-3xl">Operação</h2>
         <div className="mt-4 flex flex-wrap gap-6">
@@ -91,6 +93,7 @@ export function SettingsForm({ initial }: { initial: Settings }) {
         <Button type="submit" size="lg" disabled={formState.isSubmitting}>Salvar configurações</Button>
         {msg && <p role="status" className={msg.ok ? "text-osso" : "text-[#ff8a70]"}>{msg.text}</p>}
       </div>
+      </HydrationGate>
     </form>
   );
 }

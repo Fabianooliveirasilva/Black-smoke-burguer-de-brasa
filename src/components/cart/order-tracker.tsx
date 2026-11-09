@@ -1,4 +1,5 @@
 "use client";
+import { useConfirm } from "@/components/ui/confirm-dialog";
 import { useEffect, useState } from "react";
 import { Check, Copy, X } from "lucide-react";
 import { Button, ButtonLink, buttonClass } from "@/components/ui/button";
@@ -12,6 +13,7 @@ const DONENESS = { RARE: "mal passado", MEDIUM: "ao ponto", WELL_DONE: "bem pass
 const time = (iso: string) => new Date(iso).toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit", timeZone: "America/Sao_Paulo" });
 
 export function OrderTracker({ initial }: { initial: TrackingView }) {
+  const [confirmDialog, dialog] = useConfirm();
   const [order, setOrder] = useState(initial);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -44,6 +46,7 @@ export function OrderTracker({ initial }: { initial: TrackingView }) {
 
   return (
     <div className="grid gap-10 lg:grid-cols-[1fr_1.05fr] lg:items-start">
+      {dialog}
       <div>
         <p className="text-fumaca">Pedido #{order.number}</p>
         <h1 className="display mt-2 text-[clamp(3.2rem,9vw,6rem)]" aria-live="polite" data-testid="order-status">
@@ -122,8 +125,15 @@ export function OrderTracker({ initial }: { initial: TrackingView }) {
         {order.canCancel && (
           <button
             type="button"
-            onClick={() => {
-              if (confirm("Cancelar este pedido?")) act("cancel");
+            onClick={async () => {
+              const ok = await confirmDialog({
+                title: "Cancelar este pedido?",
+                // canCancel is only true before preparation starts and before any payment is confirmed.
+                body: "A cozinha ainda não começou o preparo. Depois de cancelado, o pedido não pode ser reaberto.",
+                confirmLabel: "Cancelar pedido",
+                cancelLabel: "Manter pedido",
+              });
+              if (ok) act("cancel");
             }}
             disabled={busy}
             className={buttonClass("ghost", "md", "mt-8 text-fumaca")}

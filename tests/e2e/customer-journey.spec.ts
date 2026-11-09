@@ -1,7 +1,9 @@
 import { adminPage, expect, test } from "../support/pw";
 
 
-test("customer orders a customized burger, applies a coupon, checks out and tracks it", async ({ page, browser }) => {
+test("customer orders a customized burger, applies a coupon, checks out and tracks it", async ({ page, browser }, info) => {
+  // Unique per project: Chromium, Firefox and WebKit share one test database in a run.
+  const customer = `Marina Alves ${info.project.name.replace("e2e-", "")}`;
   // 1. Home → menu
   await page.goto("/");
   await expect(page.getByRole("heading", { level: 1 })).toContainText("Fumaça");
@@ -45,7 +47,7 @@ test("customer orders a customized burger, applies a coupon, checks out and trac
   await page.getByTestId("place-order").click();
   await expect(page.getByText("Informe seu nome")).toBeVisible();
 
-  await page.getByLabel("Nome").fill("Marina Alves");
+  await page.getByLabel("Nome").fill(customer);
   await page.getByLabel("Celular").fill("11987651234");
   await expect(page.getByLabel("Celular")).toHaveValue("(11) 98765-1234");
   await page.getByLabel("CEP").fill("05416001");
@@ -69,7 +71,7 @@ test("customer orders a customized burger, applies a coupon, checks out and trac
   // 7. Kitchen advances the order in the admin panel; customer sees it
   const { page: admin, context } = await adminPage(browser);
   await admin.goto("/admin/pedidos");
-  await admin.getByTestId("admin-order-row").filter({ hasText: "Marina Alves" }).getByRole("link").click();
+  await admin.getByTestId("admin-order-row").filter({ hasText: customer }).getByRole("link").click();
   await expect(admin.getByRole("heading", { level: 1 })).toContainText("Pedido #");
   await admin.getByTestId("status-PREPARING").click();
   await expect(admin.getByTestId("status-ASSEMBLING")).toBeVisible();

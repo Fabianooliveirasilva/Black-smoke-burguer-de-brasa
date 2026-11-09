@@ -1,4 +1,6 @@
 "use client";
+import { HydrationGate } from "@/components/ui/hydration-gate";
+import { useConfirm } from "@/components/ui/confirm-dialog";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
@@ -13,6 +15,7 @@ import { api } from "./api";
 import type { Values, ProductFormData } from "./product-values";
 
 export function ProductForm({ product, categories }: { product?: ProductFormData; categories: Array<{ id: string; name: string }> }) {
+  const [confirmDialog, dialog] = useConfirm();
   const router = useRouter();
   const [error, setError] = useState<string | null>(null);
   const [uploading, setUploading] = useState(false);
@@ -64,6 +67,8 @@ export function ProductForm({ product, categories }: { product?: ProductFormData
 
   return (
     <form onSubmit={handleSubmit(onSubmit)} className="grid gap-8 xl:grid-cols-[1fr_22rem]">
+      <HydrationGate>
+      {dialog}
       <div className="flex flex-col gap-5">
         <div className="grid gap-4 sm:grid-cols-2">
           <Field label="Nome" required {...register("name", { onChange: (e) => !product && setValue("slug", slugify(e.target.value)) })} />
@@ -133,7 +138,7 @@ export function ProductForm({ product, categories }: { product?: ProductFormData
           <Button
             variant="ghost"
             onClick={async () => {
-              if (!confirm("Excluir este produto? Ele sai do cardápio, mas continua nos pedidos antigos.")) return;
+              if (!(await confirmDialog({ title: "Excluir este produto?", body: "Ele sai do cardápio, mas continua nos pedidos antigos.", confirmLabel: "Excluir produto" }))) return;
               try {
                 await api(`/api/admin/products/${product.id}`, "DELETE");
                 router.push("/admin/produtos");
@@ -147,6 +152,7 @@ export function ProductForm({ product, categories }: { product?: ProductFormData
           </Button>
         )}
       </div>
+      </HydrationGate>
     </form>
   );
 }

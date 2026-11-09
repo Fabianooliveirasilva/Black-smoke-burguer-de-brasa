@@ -18,7 +18,8 @@ ARG NEXT_PUBLIC_SITE_URL=http://localhost:3000
 ENV NEXT_PUBLIC_SITE_URL=$NEXT_PUBLIC_SITE_URL
 COPY --from=deps /app/node_modules ./node_modules
 COPY . .
-RUN pnpm exec prisma generate && pnpm build
+# prisma.config.ts resolves DATABASE_URL even for `generate`; the build never connects, a placeholder is enough.
+RUN export DATABASE_URL=postgresql://build:build@localhost:5432/build && pnpm exec prisma generate && pnpm build
 
 FROM node:22-alpine AS runner
 WORKDIR /app

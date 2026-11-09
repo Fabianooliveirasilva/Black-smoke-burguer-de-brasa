@@ -36,7 +36,7 @@ interface Profile {
 
 const formSchema = z
   .object({
-    name: z.string().trim().min(2, "Informe seu nome").max(80),
+    name: z.string().trim().min(1, "Informe seu nome").min(2, "Nome muito curto").max(80),
     phone: z.string().refine((v) => /^[1-9]{2}9?\d{8}$/.test(v.replace(/\D/g, "")), "Telefone com DDD, ex.: (11) 91234-5678"),
     email: z.string().trim().max(120).refine((v) => !v || z.string().email().safeParse(v).success, "E-mail inválido"),
     cep: z.string(),

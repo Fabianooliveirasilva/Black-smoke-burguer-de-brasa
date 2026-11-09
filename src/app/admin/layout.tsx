@@ -3,6 +3,7 @@ import Link from "next/link";
 import { Suspense } from "react";
 import { LogoMark } from "@/components/ui/logo";
 import { AdminNav } from "@/components/admin/admin-nav";
+import { PtValidation } from "@/components/admin/pt-validation";
 import { requireAdmin } from "@/lib/session";
 
 export const metadata: Metadata = { title: { default: "Painel", template: "%s · Admin Black Smoke" }, robots: { index: false, follow: false } };
@@ -21,6 +22,7 @@ async function AdminGate({ children }: { children: React.ReactNode }) {
 export default function AdminLayout({ children }: { children: React.ReactNode }) {
   return (
     <div className="min-h-svh lg:grid lg:grid-cols-[15rem_1fr]">
+      <PtValidation />
       <aside className="sticky top-0 z-30 border-b border-osso/10 bg-[#100d0b] px-4 py-3 lg:h-svh lg:border-r lg:border-b-0 lg:px-5 lg:py-8">
         <div className="mb-3 flex items-center justify-between lg:mb-10">
           <Link href="/admin" className="flex items-center gap-2">

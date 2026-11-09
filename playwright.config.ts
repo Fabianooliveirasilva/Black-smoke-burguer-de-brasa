@@ -18,6 +18,14 @@ export default defineConfig({
     { name: "api", testMatch: "api/**/*.spec.ts" },
     { name: "e2e-desktop", testMatch: "e2e/**/*.spec.ts", testIgnore: "e2e/mobile.spec.ts", use: { ...devices["Desktop Chrome"], viewport: { width: 1366, height: 860 } } },
     { name: "e2e-mobile", testMatch: "e2e/mobile.spec.ts", use: { ...devices["Pixel 7"] } },
+    // Cross-browser: the functional journeys on Firefox and WebKit (Safari's engine). Visual baselines,
+    // axe and the viewport matrix stay on Chromium — they test the page, not the engine.
+    ...(["firefox", "webkit"] as const).map((b) => ({
+      name: `e2e-${b}`,
+      testMatch: ["e2e/customer-journey.spec.ts", "e2e/exploratory.spec.ts", "e2e/access.spec.ts", "e2e/account.spec.ts", "e2e/pix.spec.ts", "e2e/hydration.spec.ts"],
+      use: { ...devices[b === "firefox" ? "Desktop Firefox" : "Desktop Safari"], viewport: { width: 1366, height: 860 } },
+    })),
+    { name: "e2e-mobile-safari", testMatch: "e2e/mobile.spec.ts", use: { ...devices["iPhone 14"] } },
   ],
   webServer: {
     command: dev ? "pnpm exec next dev -p 3100" : "node .next/standalone/server.js",

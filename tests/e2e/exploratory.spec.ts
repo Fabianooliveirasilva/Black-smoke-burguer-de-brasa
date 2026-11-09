@@ -8,19 +8,20 @@
  */
 import path from "node:path";
 import type { Page, TestInfo } from "@playwright/test";
-import { adminPage, expect, test } from "../support/pw";
+import { adminPage, expect, gotoReady, test } from "../support/pw";
 
 const SEARCH = "Buscar: bacon, picles, shake…";
 
 /** Screenshot de evidência: anexado ao relatório HTML e salvo em docs/qa/automated/screenshots. */
 async function evidence(page: Page, info: TestInfo, name: string) {
-  const file = path.resolve("docs/qa/automated/screenshots", `${name}.png`);
+  const suffix = info.project.name === "e2e-desktop" ? "" : `-${info.project.name.replace("e2e-", "")}`;
+  const file = path.resolve("docs/qa/automated/screenshots", `${name}${suffix}.png`);
   await page.screenshot({ path: file, fullPage: false, animations: "disabled" });
   await info.attach(name, { path: file, contentType: "image/png" });
 }
 
 async function addToCart(page: Page, slug: string) {
-  await page.goto(`/cardapio/${slug}`);
+  await gotoReady(page, `/cardapio/${slug}`);
   const badge = page.getByTestId("cart-count");
   const before = (await badge.count()) ? Number(await badge.textContent()) : 0;
   await page.getByTestId("add-to-cart").click();
@@ -33,7 +34,7 @@ test.describe("S1 · catálogo e busca", () => {
   test("busca ignora caixa, acento e espaços; HTML não é executado; estado vazio oferece limpar filtros", async ({ page }, info) => {
     const dialogs: string[] = [];
     page.on("dialog", (d) => (dialogs.push(d.message()), d.dismiss()));
-    await page.goto("/cardapio");
+    await gotoReady(page, "/cardapio");
     const search = page.getByPlaceholder(SEARCH);
     const items = page.getByTestId("menu-item");
     const total = await items.count();
@@ -61,23 +62,65 @@ test.describe("S1 · catálogo e busca", () => {
   });
 
   test("categoria + busca sem interseção mostra estado vazio", async ({ page }) => {
-    await page.goto("/cardapio");
+    await gotoReady(page, "/cardapio");
     await page.getByRole("button", { name: "Bebidas" }).click();
     await page.getByPlaceholder(SEARCH).fill("bacon");
     await expect(page.getByTestId("menu-item")).toHaveCount(0);
     await expect(page.getByText(/0 produtos encontrados/)).toBeVisible();
   });
 
-  test("ordenar por preço ordena dentro de cada categoria (comportamento atual — ver D-01)", async ({ page }) => {
-    await page.goto("/cardapio");
+  test("D-01: em 'Tudo', ordenar por preço gera uma lista única; numa categoria, ordena dentro dela", async ({ page }, info) => {
+    await gotoReady(page, "/cardapio");
+    const total = await page.getByTestId("menu-item").count();
+    const prices = async () => (await page.getByTestId("menu-item").getByText(/^R\$/).allInnerTexts()).map(money);
     for (const [label, dir] of [["Menor preço", 1], ["Maior preço", -1]] as const) {
       await page.locator("select").first().selectOption({ label });
-      for (const section of await page.locator("main section").all()) {
-        const prices = (await section.getByTestId("menu-item").getByText(/R\$/).allInnerTexts()).map(money);
-        if (prices.length < 2) continue;
-        expect(prices).toEqual([...prices].sort((a, b) => (a - b) * dir));
-      }
+      await expect(page.locator("main section")).toHaveCount(1);
+      await expect(page.getByTestId("menu-item")).toHaveCount(total);
+      const all = await prices();
+      expect(all).toEqual([...all].sort((a, b) => (a - b) * dir));
     }
+    await page.locator("select").first().selectOption({ label: "Menor preço" });
+    await expect(page.getByRole("heading", { name: "Menor preço primeiro" })).toBeVisible();
+    expect((await prices())[0]).toBe(12.9); // a limonada vem antes de qualquer burger
+    await evidence(page, info, "d01-ordenacao-global");
+
+    await page.getByRole("button", { name: "Burgers" }).click();
+    const burgers = await prices();
+    expect(burgers).toEqual([...burgers].sort((a, b) => a - b));
+    expect(burgers[0]).toBeGreaterThan(30);
+  });
+
+  test("M-02: busca, categoria, filtros e ordenação ficam na URL e sobrevivem ao reload", async ({ page }) => {
+    await gotoReady(page, "/cardapio");
+    await page.getByRole("button", { name: "Burgers" }).click();
+    await page.getByPlaceholder(SEARCH).fill("bacon");
+    await page.getByRole("button", { name: "Mais pedidos" }).click();
+    await page.locator("select").first().selectOption({ label: "Maior preço" });
+    await expect(page).toHaveURL(/q=bacon/);
+    const url = new URL(page.url());
+    expect(Object.fromEntries(url.searchParams)).toEqual({ q: "bacon", cat: "burgers", pop: "1", ordem: "price-desc" });
+    const count = await page.getByTestId("menu-item").count();
+
+    await page.reload();
+    await expect(page.getByPlaceholder(SEARCH)).toHaveValue("bacon");
+    await expect(page.getByRole("button", { name: "Burgers" })).toHaveAttribute("aria-pressed", "true");
+    await expect(page.getByRole("button", { name: "Mais pedidos" })).toHaveAttribute("aria-pressed", "true");
+    await expect(page.locator("select").first()).toHaveValue("price-desc");
+    await expect(page.getByTestId("menu-item")).toHaveCount(count);
+
+    // link compartilhado com valores inválidos cai no padrão, sem erro
+    await gotoReady(page, "/cardapio?cat=inexistente&ordem=hack");
+    await expect(page.getByRole("button", { name: "Tudo" })).toHaveAttribute("aria-pressed", "true");
+    await expect(page.locator("select").first()).toHaveValue("relevance");
+  });
+
+  test("item 8: cards do cardápio mostram os ingredientes", async ({ page }) => {
+    await gotoReady(page, "/cardapio");
+    const card = page.getByTestId("menu-item").filter({ has: page.getByRole("heading", { name: "Brasa Bacon", exact: true }) });
+    await expect(card.getByTestId("menu-item-ingredients")).toContainText(/bacon/i);
+    await card.click();
+    await expect(page.getByRole("heading", { level: 1 })).toHaveText("Brasa Bacon");
   });
 
   test("BUG-03 (corrigido): produto inexistente responde 404 e um único robots noindex", async ({ page }, info) => {
@@ -105,6 +148,7 @@ test.describe("S2 · produto e personalização", () => {
   });
 
   test("observação com HTML é exibida como texto no carrinho e o carrinho sobrevive ao reload", async ({ page }) => {
+    // Digita logo após o goto, possivelmente antes da hidratação: no WebKit isso perdia a observação (BUG-05).
     await page.goto("/cardapio/smoke-classic");
     await page.locator("textarea").fill("<b>sem cebola</b>");
     await page.getByTestId("add-to-cart").click();
@@ -149,26 +193,32 @@ test.describe("S3 · carrinho e cupom", () => {
 });
 
 test.describe("S4 · checkout e acompanhamento", () => {
-  test("retirada: pedido mínimo bloqueia checkout e o formulário não pede endereço", async ({ page }, info) => {
-    await addToCart(page, "fritas-da-casa");
+  test("D-02: pedido mínimo vale só para entrega; retirada abaixo do mínimo vai ao checkout sem endereço", async ({ page }, info) => {
+    await addToCart(page, "fritas-da-casa"); // R$ 18,90 < mínimo de R$ 30
     await page.goto("/carrinho");
-    await page.getByText("Retirar", { exact: true }).click();
-    await expect(page.getByText("Pedido mínimo de R$ 30,00.")).toBeVisible();
+    await page.getByLabel("Região de entrega").selectOption({ index: 1 });
+    await expect(page.getByText("Pedido mínimo para entrega: R$ 30,00. Na retirada não há mínimo.")).toBeVisible();
     await expect(page.getByTestId("go-checkout")).toHaveCount(0);
     await expect(page.getByRole("button", { name: "Continuar para o checkout" })).toBeDisabled();
-    await evidence(page, info, "s4-retirada-minimo");
+    await evidence(page, info, "d02-entrega-abaixo-minimo");
 
-    await addToCart(page, "smoke-classic");
-    await page.goto("/carrinho");
     await page.getByText("Retirar", { exact: true }).click();
+    await expect(page.getByText(/Pedido mínimo/)).toHaveCount(0);
+    await evidence(page, info, "d02-retirada-sem-minimo");
     await page.getByTestId("go-checkout").click();
     await page.waitForURL("**/checkout");
     await expect(page.getByLabel("Nome")).toBeVisible();
     await expect(page.getByLabel("Rua")).toHaveCount(0);
+    await page.getByLabel("Nome").fill("Retirada Rápida");
+    await page.getByLabel("Celular").fill("11987651234");
+    await page.getByTestId("place-order").click();
+    await page.waitForURL(/\/pedido\//);
+    await expect(page.getByRole("region", { name: "Comanda do pedido" })).toContainText("R$ 18,90");
   });
 
-  test("duplo clique em confirmar gera um único pedido; cliente cancela pelo acompanhamento", async ({ page }, info) => {
+  test("duplo clique em confirmar gera um único pedido; cliente cancela pelo diálogo próprio (M-07)", async ({ page }, info) => {
     const dialogs: string[] = [];
+    page.on("dialog", (d) => (dialogs.push(d.message()), d.dismiss())); // nenhum diálogo nativo deve abrir
     await addToCart(page, "smoke-classic");
     await page.goto("/carrinho");
     await page.getByLabel("Região de entrega").selectOption({ index: 1 });
@@ -191,11 +241,33 @@ test.describe("S4 · checkout e acompanhamento", () => {
     expect(posts).toEqual([201]);
     expect(dialogs).toEqual([]); // nome com <script> não executou nada
 
-    page.on("dialog", (d) => (dialogs.push(d.message()), d.accept())); // confirm() de cancelamento
+    const dialog = page.getByTestId("confirm-dialog");
     await page.getByTestId("cancel-order").click();
+    await expect(dialog.getByRole("heading", { name: "Cancelar este pedido?" })).toBeVisible();
+    await expect(dialog.getByRole("button", { name: "Manter pedido" })).toBeFocused(); // padrão seguro
+    await evidence(page, info, "m07-dialogo-cancelamento");
+    await page.keyboard.press("Escape");
+    await expect(dialog).toBeHidden();
+    await expect(page.getByTestId("order-status")).toHaveText("Pedido recebido");
+
+    await page.getByTestId("cancel-order").click();
+    await dialog.getByRole("button", { name: "Cancelar pedido" }).click();
     await expect(page.getByTestId("order-status")).toHaveText(/cancelado/i);
-    expect(dialogs).toEqual(["Cancelar este pedido?"]);
+    expect(dialogs).toEqual([]);
     await evidence(page, info, "s4-pedido-cancelado");
+  });
+
+  test("M-05: nome com 1 caractere tem mensagem própria", async ({ page }) => {
+    await addToCart(page, "smoke-classic");
+    await page.goto("/carrinho");
+    await page.getByText("Retirar", { exact: true }).click();
+    await page.getByTestId("go-checkout").click();
+    await page.getByTestId("place-order").click();
+    await expect(page.getByText("Informe seu nome")).toBeVisible();
+    await page.getByLabel("Nome").fill("A");
+    await page.getByTestId("place-order").click();
+    await expect(page.getByText("Nome muito curto")).toBeVisible();
+    await expect(page.getByText("Informe seu nome")).toHaveCount(0);
   });
 
   test("BUG-03 (corrigido): token de acompanhamento inexistente responde 404", async ({ page }) => {
@@ -265,6 +337,56 @@ test.describe("S6 · admin", () => {
     await expect(admin.getByText(/^1 pedidos$/)).toHaveCount(0);
     const barLabels = await admin.getByRole("button", { name: /pedidos?$/ }).evaluateAll((b) => b.map((e) => e.getAttribute("aria-label") ?? ""));
     expect(barLabels.filter((l) => /\b1 pedidos$/.test(l))).toEqual([]);
+    await context.close();
+  });
+});
+
+test.describe("melhorias do admin", () => {
+  test("M-03: validação nativa dos formulários do admin fala português", async ({ browser }, info) => {
+    const { page: admin, context } = await adminPage(browser);
+    await admin.goto("/admin/produtos/novo");
+    await admin.getByRole("button", { name: "Criar produto" }).click();
+    const name = admin.getByRole("textbox", { name: "Nome", exact: true });
+    await expect.poll(() => name.evaluate((e: HTMLInputElement) => e.validationMessage)).toBe("Preencha este campo.");
+    await evidence(admin, info, "m03-validacao-pt");
+    // a mensagem customizada some ao digitar (senão o campo ficaria inválido para sempre)
+    await name.fill("Algo");
+    expect(await name.evaluate((e: HTMLInputElement) => e.validity.valid)).toBe(true);
+    await context.close();
+  });
+
+  test("M-04: filtro com data inicial posterior à final explica o motivo", async ({ browser }, info) => {
+    const { page: admin, context } = await adminPage(browser);
+    await admin.goto("/admin/pedidos?from=2026-12-31&to=2026-01-01");
+    await expect(admin.getByTestId("date-range-error")).toContainText('A data "De" é posterior à data "Até"');
+    await evidence(admin, info, "m04-datas-invertidas");
+    await admin.goto("/admin/pedidos");
+    await expect(admin.getByTestId("date-range-error")).toHaveCount(0);
+    await expect(admin.getByText(/^\d+ pedidos?$/)).toBeVisible();
+    await context.close();
+  });
+
+  test("M-07: exclusão no admin usa diálogo próprio; Voltar não exclui", async ({ browser }) => {
+    const { page: admin, context } = await adminPage(browser);
+    const nativeDialogs: string[] = [];
+    admin.on("dialog", (d) => (nativeDialogs.push(d.message()), d.dismiss()));
+    const name = `Categoria Dialogo ${Date.now() % 100000}`;
+    await admin.goto("/admin/produtos");
+    await admin.getByLabel("Nova categoria").fill(name);
+    await admin.getByRole("button", { name: "Adicionar" }).first().click();
+    const row = admin.locator("li, tr").filter({ hasText: name }).last();
+    await expect(row).toBeVisible();
+
+    const dialog = admin.getByTestId("confirm-dialog");
+    await row.getByRole("button", { name: "Excluir" }).click();
+    await expect(dialog.getByRole("heading", { name: `Excluir ${name}?` })).toBeVisible();
+    await dialog.getByRole("button", { name: "Voltar" }).click();
+    await expect(row).toBeVisible();
+
+    await row.getByRole("button", { name: "Excluir" }).click();
+    await dialog.getByRole("button", { name: "Excluir categoria" }).click();
+    await expect(admin.getByText(name)).toHaveCount(0);
+    expect(nativeDialogs).toEqual([]);
     await context.close();
   });
 });
