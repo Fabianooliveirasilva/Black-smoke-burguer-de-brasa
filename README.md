@@ -40,7 +40,7 @@ cartão, use um token de sandbox do Mercado Pago (`TEST-...`) e configure o webh
 | `pnpm lint` / `pnpm typecheck` | ESLint e TypeScript |
 | `pnpm test` | Testes unitários (Vitest) |
 | `pnpm test:integration` | Integração com Postgres real (banco `blacksmoke_test`) |
-| `pnpm test:e2e` | API + E2E + acessibilidade + visual (Playwright; rode `pnpm build` antes) |
+| `pnpm test:e2e` | API + E2E + acessibilidade + visual em Chromium, Firefox, WebKit, Pixel 7 e iPhone 14 (Playwright; rode `pnpm build` antes e `pnpm exec playwright install chromium firefox webkit` uma vez) |
 | `pnpm test:coverage` | Cobertura |
 | `pnpm db:start` | Postgres embarcado na porta 5433 |
 | `pnpm db:migrate` / `pnpm db:deploy` | Migrations (dev / produção) |
@@ -63,8 +63,12 @@ Coloque um proxy reverso com HTTPS na frente (`TRUST_PROXY=true` já é o padrã
 
 ## CI
 
-`.github/workflows/ci.yml` roda em push para `main` e em PRs: lint, typecheck, testes unitários,
-`pnpm audit`; depois integração, build, Playwright contra o build de produção e build da imagem Docker.
+`.github/workflows/ci.yml` roda em push para `main` e em PRs:
+
+1. lint, typecheck, testes unitários e `pnpm audit`;
+2. integração com Postgres, build e Playwright (145 testes, 3 motores) contra o build de produção;
+3. Lighthouse (mobile, mediana de 3) com as notas publicadas como anotações do job;
+4. `docker compose up` da stack de produção + [`scripts/compose-smoke.sh`](scripts/compose-smoke.sh) (migrations, seed, login admin, pedido, upload no volume, usuário não-root).
 
 ## Documentação
 

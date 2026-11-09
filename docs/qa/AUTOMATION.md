@@ -41,6 +41,44 @@ de teste compartilhado. O E2E garante que nenhum texto do dashboard mostra "1 pe
 [`tests/integration/dashboard.test.ts`](../../tests/integration/dashboard.test.ts), com pedido fixado às
 22:30 BRT. Foi validado nos dois sentidos: falha com a query antiga e passa com a corrigida.
 
+## Rodada 2 — checklist do prompt (2026-11-08)
+
+| Teste | Arquivo | Cobre |
+|---|---|---|
+| D-01: em "Tudo", ordenar por preço gera uma lista única; numa categoria, ordena dentro dela | `exploratory.spec.ts` | decisão D-01 ([evidência](automated/screenshots/d01-ordenacao-global.png)) |
+| M-02: filtros na URL sobrevivem ao reload; valores inválidos caem no padrão | `exploratory.spec.ts` | M-02 |
+| item 8: cards do cardápio mostram os ingredientes | `exploratory.spec.ts` | §8.2 |
+| D-02: mínimo só para entrega; retirada abaixo do mínimo fecha pedido | `exploratory.spec.ts` + `tests/integration/orders.test.ts` | decisão D-02, servidor e tela ([entrega](automated/screenshots/d02-entrega-abaixo-minimo.png), [retirada](automated/screenshots/d02-retirada-sem-minimo.png)) |
+| duplo clique gera um pedido; cancelamento pelo diálogo próprio (Esc e "Manter pedido" não cancelam) | `exploratory.spec.ts` | M-07 ([diálogo](automated/screenshots/m07-dialogo-cancelamento.png)) |
+| M-05: nome com 1 caractere tem mensagem própria | `exploratory.spec.ts` | M-05 |
+| M-03: validação nativa do admin em português | `exploratory.spec.ts` | M-03 ([evidência](automated/screenshots/m03-validacao-pt.png)) |
+| M-04: datas invertidas explicam o motivo | `exploratory.spec.ts` | M-04 ([evidência](automated/screenshots/m04-datas-invertidas.png)) |
+| M-07: exclusão no admin usa diálogo próprio; "Voltar" não exclui | `exploratory.spec.ts` | M-07 |
+| M-06: links do rodapé ≥ 28 px sem colidir | `mobile.spec.ts` | M-06 (Pixel 7 e iPhone 14) |
+| cliente edita o perfil e vê o próprio pedido no histórico | `account.spec.ts` | item 9 (§9 Clientes) |
+| tablet retrato/paisagem, Full HD e 2K: sem rolagem horizontal, texto com largura contida, navegação alcançável, cardápio em 2 colunas | `responsive.spec.ts` | item 5 (§15) — screenshots `responsivo-*` |
+| BUG-05 ×2 e BUG-06 com JavaScript atrasado (digitação antes da hidratação) | `hydration.spec.ts` | bugs achados na rodada cross-browser |
+
+### Projetos Playwright
+
+| Projeto | Navegador / dispositivo | Testes |
+|---|---|---|
+| `api` | — (HTTP) | 21 |
+| `e2e-desktop` | Chromium 1366×860 (+ matriz de viewports do `responsive.spec`) | 46 |
+| `e2e-mobile` | Pixel 7 (Chromium) | 9 |
+| `e2e-firefox` | Firefox desktop | 30 |
+| `e2e-webkit` | WebKit desktop (Safari) | 30 |
+| `e2e-mobile-safari` | iPhone 14 (WebKit) | 9 |
+| **Total** | | **145** |
+
+Firefox e WebKit rodam as jornadas funcionais (`customer-journey`, `exploratory`, `access`, `account`,
+`pix`, `hydration`). Regressão visual, axe e a matriz de viewports ficam no Chromium: eles testam a
+página, não o motor.
+
+**Estabilidade.** Os componentes interativos expõem `data-hydrated`, e o helper `gotoReady()` espera
+por ele antes de agir, para que os testes não "corram" contra a hidratação. A exceção é o
+`hydration.spec.ts`, que digita **antes** dela de propósito.
+
 ## Resultado (2026-11-08)
 
 Antes da correção: 13/13, sendo 10 verdes + 3 falhas esperadas (`test.fail` para BUG-02 e BUG-03 ×2).

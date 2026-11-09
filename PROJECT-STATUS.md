@@ -1,28 +1,32 @@
 # PROJECT STATUS — Black Smoke Burger
 
-**Fase atual:** 9 — Entrega (pendências de validação em ambiente real)
+**Fase atual:** 10 — Entrega (checklist em [docs/CHECKLIST.md](docs/CHECKLIST.md))
 
 ## Concluído
-- Fase 1: pesquisa de Skills (`docs/SKILLS-RESEARCH.md`), identidade e arquitetura (`docs/ARCHITECTURE.md`).
-- Fase 2: Next 16.4 + Prisma 7 + Better Auth; Postgres embarcado (`pnpm db:start`); migration `init`; seed.
-- Fase 3: design system (tokens em `globals.css`, Big Shoulders + Schibsted Grotesk, comanda kraft).
-- Fase 4: home, cardápio (busca/filtros/ordenação), produto (personalização), carrinho, checkout, acompanhamento, login/cadastro/conta.
-- Fase 5: API REST (menu, quote, orders, track/cancel/pay, me/*, webhook MP), regras financeiras no servidor.
-- Fase 6: admin (dashboard, pedidos, produtos+upload, categorias, cupons, loja/horários/zonas).
-- Fase 7: Dockerfile multi-stage, Docker Compose, GitHub Actions CI.
-- Fase 8: QA — Vitest unit + integração (69), Playwright API/E2E/a11y/mobile/visual (48), Lighthouse; docs DATABASE, SECURITY, QA-STRATEGY.
-- README.
-- QA exploratório assistido (8 sessões, `docs/qa/EXPLORATORY-TESTING.md`) + 13 testes Playwright derivados; suíte Playwright 61/61.
-- BUG-01/02/03/04 corrigidos (plural, porcentagem pt-BR, 404 real via Proxy, fuso do gráfico diário); unit 55, integração 18, Playwright 61 — tudo verde.
-- Playwright MCP configurado (`.mcp.json`) e skill `webapp-testing` instalada.
-- Lint, `tsc` e testes unitários limpos (verificado em 2026-11-08).
+- Fases 1–9: pesquisa de Skills, arquitetura, fundação, design system, loja, API, admin, segurança, QA, otimização.
+- QA exploratório assistido (8 sessões) + rodada cross-browser; 6 bugs encontrados e corrigidos (BUG-01…06).
+- Decisões D-01 (ordenação global) e D-02 (mínimo só para entrega) implementadas; melhorias M-01…M-07 aplicadas.
+- Ingredientes nos cards; perfil e histórico do cliente cobertos por E2E.
+- CI com 4 jobs: qualidade, testes (Chromium/Firefox/WebKit), Lighthouse, Docker Compose + smoke test.
+- Código no GitHub: https://github.com/Fabianooliveirasilva/Black-smoke-burguer-de-brasa
+
+## Testes executados (2026-11-08)
+| Suíte | Resultado |
+|---|---|
+| Lint / typecheck | OK |
+| Vitest unit | 55/55 |
+| Vitest integração (Postgres real) | 18/18 |
+| Playwright (api, Chromium desktop, Pixel 7, Firefox, WebKit, iPhone 14) | 145 testes, verdes localmente |
+| CI no GitHub | qualidade ✅ · Docker Compose ✅ · E2E e Lighthouse em execução |
 
 ## Pendente
-- Decidir as dúvidas D-01/D-02 com o cliente e priorizar as melhorias M-02…M-07 (`docs/qa/EXPLORATORY-TESTING.md` §4 e §5).
-- Primeiro commit e push; confirmar que o CI passa no GitHub (nunca rodou — a máquina não tem Docker).
-- Lighthouse em hardware dedicado / Lighthouse CI (performance mobile medida 78–92 numa máquina sobrecarregada; meta 90).
-- Testar Mercado Pago com token sandbox real e webhook público.
+- Registrar no checklist o resultado do E2E e as notas do Lighthouse do CI.
+- Mercado Pago com token sandbox real e webhook público (depende de conta do cliente).
+- Trocar dados de demonstração (depoimentos, cardápio, fotos) pelos reais antes de publicar.
+- Ativar o Playwright MCP (reiniciar o Claude Code e aprovar `.mcp.json`).
 
 ## Problemas identificados
-- Máquina sem Docker → Postgres via `embedded-postgres`; Docker Compose/CI não validados localmente.
-- Pouca RAM livre: builds lentos e medições de performance instáveis.
+- Máquina de desenvolvimento sem Docker e com pouca RAM: Docker e Lighthouse validados no CI.
+
+## Próxima tarefa
+- Conferir o resultado completo do CI e fechar as linhas 14/15 e a seção de Lighthouse do checklist.

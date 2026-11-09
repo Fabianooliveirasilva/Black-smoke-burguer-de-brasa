@@ -74,7 +74,7 @@ tests/                  unit/, integration/ (Vitest + Postgres real), api/ e e2e
 **Pedido.** O cliente envia apenas IDs e escolhas (`productId`, `optionIds`, `removedIngredientIds`,
 quantidade, zona, cupom, forma de pagamento). O servidor carrega produtos/opções do banco, rejeita
 indisponíveis, calcula subtotal → desconto → taxa de entrega → total em centavos, valida horário e
-pedido mínimo, e grava tudo numa transação: pedido, itens com *snapshot* de nome/preço, evento de
+pedido mínimo (**só para entrega**: o mínimo cobre o custo do frete; retirada não tem mínimo, decisão D-02), e grava tudo numa transação: pedido, itens com *snapshot* de nome/preço, evento de
 status inicial e uso do cupom com incremento atômico condicional (`usesCount < maxUses`).
 
 **Acompanhamento.** Cada pedido tem `trackingToken` aleatório de 32 bytes (base64url). A URL pública
@@ -95,6 +95,12 @@ ocultas e só "pagamento na entrega/retirada" é oferecido — nada é simulado 
 **Cache.** Cardápio, cupons ativos e configurações da loja usam `'use cache'` + `cacheTag('menu'|'promotions'|'store')`,
 sempre chamados após `connection()` (nunca no build — o build não precisa de banco). Mutações do admin
 chamam `revalidateTag(tag, { expire: 0 })`. Páginas usam Partial Prerendering: shell estático + dados em streaming.
+
+**Hidratação.** Controles renderizados no servidor aceitam digitação antes do React assumir. Duas
+regras evitam perder o que o cliente digitou (BUG-05/06 em `docs/qa/EXPLORATORY-TESTING.md`): campos
+de texto controlados que aparecem no HTML inicial usam `useAdoptTypedValue` (adota o valor do DOM ao
+hidratar), e formulários com valores pré-preenchidos ficam dentro de `HydrationGate` (desabilitados
+até hidratar). Formulários que dependem de `localStorage` (carrinho, checkout) só renderizam após o mount.
 
 **Autorização em camadas.** `proxy.ts` faz só o redirecionamento otimista (cookie ausente). A verificação
 real acontece em cada página (`requireAdmin()`/`requireUser()`) e em cada rota (`route({ auth })`). O layout

@@ -7,7 +7,7 @@
 | **Ambiente** | Linux, Chromium headless (Playwright 1.65), PostgreSQL 17 embarcado, banco `blacksmoke` semeado, Mercado Pago **não** configurado |
 | **Técnica** | Session-Based Test Management (SBTM): 8 sessões com charter, heurísticas SFDPOT, valores-limite, entradas hostis e manipulação de cliente |
 | **Ferramentas** | skill `webapp-testing` (Anthropic) com scripts Python Playwright; Playwright MCP configurado em `.mcp.json` |
-| **Resultado** | 114 observações · **4 bugs (todos corrigidos em 2026-11-08)** · **7 melhorias** (M-01 corrigida junto) · **3 dúvidas de produto** · nenhum defeito de segurança ou de cálculo financeiro |
+| **Resultado** | 114 observações + rodada cross-browser · **6 bugs (todos corrigidos)** · **7 melhorias (todas aplicadas)** · **3 dúvidas de produto (decididas)** · nenhum defeito de segurança ou de cálculo financeiro |
 
 ## 1. Como o teste foi conduzido
 
@@ -156,25 +156,59 @@ prejudicado · **Baixa** = cosmético, SEO ou caso raro.
   O defeito só fica evidente quando todos os pedidos do dia são posteriores às 21:00, como no banco de
   teste recém-criado. Lição registrada em §8.
 
+### BUG-05 · Safari/WebKit descarta observação e busca digitadas antes da hidratação — Média · ✅ Corrigido
+
+- **Como foi achado**: na primeira execução da suíte no WebKit (motor do Safari), item 13 do checklist.
+  O teste digita a observação logo após abrir o produto; no WebKit o item ia para o carrinho sem ela.
+- **Reprodução isolada**: com o JavaScript da página atrasado (celular lento), digitar "sem cebola" e
+  clicar em adicionar → a caixa **mostra** "sem cebola", mas o carrinho recebe `""`. **5 de 5 no WebKit,
+  0 de 5 no Chromium.** Ponto da carne e remoção de ingredientes não são afetados (o React reaproveita
+  *cliques* feitos antes da hidratação, mas o WebKit não reaproveita *digitação* em campo controlado).
+- **Impacto**: o cliente de iPhone em 4G que escreve rápido "sem cebola" recebe o burger com cebola, e
+  nada avisa. A busca do cardápio também mostrava o texto sem filtrar.
+- **Correção**: hook [`useAdoptTypedValue`](../../src/hooks/use-adopt-typed-value.ts): ao hidratar, se o
+  DOM tiver um valor diferente do estado, o estado adota o DOM. Aplicado à observação do produto e à
+  busca. O cupom do carrinho e o checkout já só aparecem depois da hidratação.
+- **Teste**: [`tests/e2e/hydration.spec.ts`](../../tests/e2e/hydration.spec.ts) atrasa os scripts em 2 s e
+  digita nesse intervalo, de forma determinística, nos três navegadores.
+
+### BUG-06 · Formulário pré-preenchido concatena texto digitado antes da hidratação — Baixa · ✅ Corrigido
+
+- **Como foi achado**: o teste novo da área do cliente (item 9) falhou com o nome
+  **"Perfil OriginalPerfil Editado"**.
+- **Reprodução isolada**: com scripts atrasados, digitar "Nome Novo" no perfil → após hidratar:
+  `"Nome AntigoNome Novo"` no **Chromium** (no WebKit não ocorre). O React Hook Form só preenche os
+  `defaultValues` ao hidratar, e no HTML do servidor o campo vem vazio e editável.
+- **Afetados**: perfil do cliente e, no admin, edição de produto e configurações da loja. Login,
+  cadastro (campos vazios) e checkout (renderizado após a hidratação) foram testados e **não** são afetados.
+- **Correção**: [`HydrationGate`](../../src/components/ui/hydration-gate.tsx): `<fieldset disabled>`
+  com `display: contents` até o React assumir. Ninguém digita num campo que ainda vai ser sobrescrito,
+  e o layout não muda.
+- **Teste**: `hydration.spec.ts` confirma que o campo está desabilitado antes, habilitado depois e com
+  o valor certo, num contexto de navegador sem cache.
+
 ## 4. Melhorias sugeridas
+
+Todas aplicadas em 2026-11-08 e cobertas por teste (ver [AUTOMATION.md](AUTOMATION.md)).
+
 
 | ID | Observação | Sessão | Evidência |
 |---|---|---|---|
 | M-01 ✅ | *(Corrigida junto com o BUG-03.)* A página 404 genérica usava o `<title>` da home ("Black Smoke Burger — Burger de brasa em Pinheiros"). Sugestão: "Página não encontrada". | S1 | [recon 404](exploratory/screenshots/recon_pagina-que-nao-existe.png) |
-| M-02 | Busca, categoria e ordenação do cardápio não ficam na URL: o reload perde o filtro e não dá para compartilhar "cardápio filtrado por bebidas". | S1 | [filtro](exploratory/screenshots/s1_filtro_bebidas.png) |
-| M-03 | Os formulários do admin usam a validação nativa do navegador nos campos obrigatórios (mensagem no idioma do navegador, ex.: "Please fill out this field."), enquanto a loja tem mensagens próprias em português. | S6 | [produto vazio](exploratory/screenshots/s6_produto_vazio.png) |
-| M-04 | Filtro de pedidos com "De" posterior a "Até" devolve a lista vazia sem explicar o motivo. | S6 | [datas invertidas](exploratory/screenshots/s6_filtro_datas_invertidas.png) |
-| M-05 | Nome com 1 caractere no checkout mostra "Informe seu nome", como se o campo estivesse vazio. Melhor: "Nome muito curto". | S4 | [checkout inválido](exploratory/screenshots/s4_checkout_invalido.png) |
-| M-06 | Links do rodapé no mobile medem 20 px de altura ("Cardápio completo" 146×20; créditos "Unsplash"/"Mixkit" 15 px). Passam no WCAG 2.2 · 2.5.8 (AA) pela exceção de espaçamento, já que ficam ~32 px um do outro, mas estão bem abaixo dos 44 px recomendados (2.5.5 AAA). Sugestão: `py-2` nos links do rodapé. | S7 | [mobile cardápio](exploratory/screenshots/s7_mobile_cardapio.png) |
-| M-07 | Cancelar o pedido usa `confirm()` nativo, fora da identidade visual e sem texto sobre reembolso. Sugestão: diálogo próprio. | S4 | [cancelado](exploratory/screenshots/s4_pedido_cancelado.png) |
+| M-02 ✅ | **Feito:** `?q=&cat=&pop=1&disp=1&ordem=`; valores inválidos caem no padrão. Busca, categoria e ordenação do cardápio não ficam na URL: o reload perde o filtro e não dá para compartilhar "cardápio filtrado por bebidas". | S1 | [filtro](exploratory/screenshots/s1_filtro_bebidas.png) |
+| M-03 ✅ | **Feito:** `PtValidation` no layout do admin traduz a validação nativa ("Preencha este campo."). Os formulários do admin usam a validação nativa do navegador nos campos obrigatórios (mensagem no idioma do navegador, ex.: "Please fill out this field."), enquanto a loja tem mensagens próprias em português. | S6 | [produto vazio](exploratory/screenshots/s6_produto_vazio.png) |
+| M-04 ✅ | **Feito:** aviso "A data \"De\" é posterior à data \"Até\"…". Filtro de pedidos com "De" posterior a "Até" devolve a lista vazia sem explicar o motivo. | S6 | [datas invertidas](exploratory/screenshots/s6_filtro_datas_invertidas.png) |
+| M-05 ✅ | **Feito.** Nome com 1 caractere no checkout mostra "Informe seu nome", como se o campo estivesse vazio. Melhor: "Nome muito curto". | S4 | [checkout inválido](exploratory/screenshots/s4_checkout_invalido.png) |
+| M-06 ✅ | **Feito:** alvo de 28 px (o teste pegou que 32 px sobrepunha os vizinhos). Links do rodapé no mobile medem 20 px de altura ("Cardápio completo" 146×20; créditos "Unsplash"/"Mixkit" 15 px). Passam no WCAG 2.2 · 2.5.8 (AA) pela exceção de espaçamento, já que ficam ~32 px um do outro, mas estão bem abaixo dos 44 px recomendados (2.5.5 AAA). Sugestão: `py-2` nos links do rodapé. | S7 | [mobile cardápio](exploratory/screenshots/s7_mobile_cardapio.png) |
+| M-07 ✅ | **Feito:** `useConfirm()` com `<dialog>` nativo (foco preso, Esc, "Manter pedido" com foco por padrão) no cancelamento e nas 4 exclusões do admin. Cancelar o pedido usava `confirm()` nativo, fora da identidade visual e sem texto sobre reembolso. Sugestão: diálogo próprio. | S4 | [cancelado](exploratory/screenshots/s4_pedido_cancelado.png) |
 
-## 5. Dúvidas de produto (decisão do cliente)
+## 5. Dúvidas de produto — decididas em 2026-11-08
 
 | ID | Comportamento atual | Pergunta |
 |---|---|---|
-| D-01 | "Menor preço" ordena **dentro de cada categoria**; com "Tudo" selecionado, uma limonada de R$ 12,90 aparece depois de um burger de R$ 33,90. | O cliente espera ordenação global ao escolher "Tudo"? ([screenshot](exploratory/screenshots/s1_ordenacao_menor_preco.png)) |
-| D-02 | O pedido mínimo de R$ 30 também vale para **retirada** (fritas de R$ 18,90 não fecham pedido). | O mínimo existe por causa do custo de entrega? Se sim, a retirada deveria ser isenta. ([screenshot](exploratory/screenshots/s4_retirada_minimo.png)) |
-| D-03 | Cupom aplicado abaixo do mínimo fica "pendente" com aviso e passa a valer sozinho quando o subtotal atinge o mínimo. Se o subtotal cair de novo, o desconto some. | Comportamento bom e coerente; só confirmar que é o desejado. ([pendente](exploratory/screenshots/s3_cupom_minimo.png) → [aplicado](exploratory/screenshots/s3_cupom_revalidado.png)) |
+| D-01 ✅ | **Decisão: lista única global.** Em "Tudo", ordenar por preço ou nome junta todas as categorias; dentro de uma categoria, ordena nela. Antes: "Menor preço" ordena **dentro de cada categoria**; com "Tudo" selecionado, uma limonada de R$ 12,90 aparece depois de um burger de R$ 33,90. | O cliente espera ordenação global ao escolher "Tudo"? ([screenshot](exploratory/screenshots/s1_ordenacao_menor_preco.png)) |
+| D-02 ✅ | **Decisão: mínimo só para entrega**, aplicado no servidor (`createOrder`) e no carrinho ("Pedido mínimo para entrega: R$ 30,00. Na retirada não há mínimo."). Antes: o pedido mínimo de R$ 30 também vale para **retirada** (fritas de R$ 18,90 não fecham pedido). | O mínimo existe por causa do custo de entrega? Se sim, a retirada deveria ser isenta. ([screenshot](exploratory/screenshots/s4_retirada_minimo.png)) |
+| D-03 ✅ | **Mantido** (comportamento coerente). Cupom aplicado abaixo do mínimo fica "pendente" com aviso e passa a valer sozinho quando o subtotal atinge o mínimo. Se o subtotal cair de novo, o desconto some. | Comportamento bom e coerente; só confirmar que é o desejado. ([pendente](exploratory/screenshots/s3_cupom_minimo.png) → [aplicado](exploratory/screenshots/s3_cupom_revalidado.png)) |
 
 ## 6. Falsos positivos descartados na triagem
 
