@@ -42,10 +42,12 @@ test("unknown tracking tokens and products render the not-found page and are noi
   }
 });
 
-// Lighthouse/PageSpeed send a plain Chrome UA and read only `head meta`; streamed metadata
-// (generateMetadata in <body>) scored the product page SEO 92 in CI. Streaming metadata is off.
-test("product page metadata is in <head> for a regular browser user agent", async ({ request }) => {
-  const html = await (await request.get("/cardapio/smoke-classic")).text();
+// Crawlers (htmlLimitedBots) must get the product's metadata in <head>, not streamed into <body>.
+test("crawlers get the product page metadata in <head>", async ({ request }) => {
+  const res = await request.get("/cardapio/smoke-classic", {
+    headers: { "user-agent": "Mozilla/5.0 (compatible; Googlebot/2.1; +http://www.google.com/bot.html)" },
+  });
+  const html = await res.text();
   const head = html.slice(0, html.indexOf("</head>"));
   expect(head).toMatch(/<meta name="description" content="[^"]{50,}"/);
   expect(head).toContain('rel="canonical"');

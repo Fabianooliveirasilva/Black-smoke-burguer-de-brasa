@@ -32,9 +32,9 @@ Medido no CI (hardware do GitHub, mediana de 3 execuções mobile por página, b
 |---|---|---|---|---|---|---|---|
 | `/` | 89 ⚠️ | 100 | 100 | 100 | 3,7 s | 0 | 50 ms |
 | `/cardapio` | 100 | 100 | 100 | 100 | 0,9 s | 0 | 40 ms |
-| `/cardapio/smoke-classic` | 90 | 100 | 100 | 92 → corrigido | 3,5 s | 0 | 120 ms |
+| `/cardapio/smoke-classic` | 90 | 100 | 100 | 92 (ver nota) | 3,5 s | 0 | 120 ms |
 
-- **SEO 92 do produto (corrigido):** o Lighthouse 12 (e o PageSpeed Insights) usa um user-agent de Chrome comum, sem `Chrome-Lighthouse`, e só lê `head meta`. Como o Next transmite os metadados de `generateMetadata` dentro do `<body>` para navegadores comuns, a auditoria `meta-description` falhava. O streaming de metadados foi desligado (`htmlLimitedBots: /.*/` em `next.config.ts`); a única página afetada lê o produto de uma consulta em cache, então o custo é nulo. Teste de regressão em `tests/e2e/access.spec.ts`. A nota nova sai na próxima execução do CI.
+- **SEO 92 do produto (limitação conhecida, não é falha para buscadores):** o Lighthouse 12 (e o PageSpeed Insights) usa um user-agent de Chrome comum e só lê `head meta`; para navegadores comuns o Next transmite os metadados de `generateMetadata` dentro do `<body>` (streaming metadata), então a auditoria `meta-description` acusa falta de descrição. Crawlers (Googlebot, Bing, WhatsApp, Facebook…) recebem os metadados no `<head>` — coberto por teste em `tests/e2e/access.spec.ts`. Tentativa de desligar o streaming para todos (`htmlLimitedBots: /.*/`) deu SEO 100, mas deixou os prefetches parciais (`?_rsc=`) pendurados e quebrou 16 testes E2E no CI; foi revertida. Alternativa futura: pré-gerar as páginas de produto (`generateStaticParams`), o que exige banco no build do Docker.
 - **Performance 89 da home (aviso):** 1 ponto abaixo da meta, dentro da variação normal do Lighthouse em máquina compartilhada. O LCP é a foto do hero, já servida em AVIF (29 KB no mobile) com preload e `priority`. Revalidar no PageSpeed Insights com o domínio de produção (CDN e HTTP/2 tendem a melhorar o LCP).
 
 ## O que depende de recursos externos

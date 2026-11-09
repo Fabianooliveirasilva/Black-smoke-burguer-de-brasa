@@ -33,10 +33,13 @@ const securityHeaders = [
 const nextConfig: NextConfig = {
   output: "standalone",
   poweredByHeader: false,
-  // Metadata always goes in <head> (streaming metadata off). Lighthouse/PageSpeed 12 send a plain
-  // Chrome UA and read only `head meta`, so streamed metadata scored the product page SEO 92.
-  // The only generateMetadata (product page) reads a "use cache" query, so blocking costs ~nothing.
-  htmlLimitedBots: /.*/,
+  // Crawlers and link-preview bots (WhatsApp matters in Brazil) get <head> metadata before streaming.
+  // Do NOT use /.*/ here: treating every request as a bot leaves partial prefetches (`?_rsc=`)
+  // hanging, so the network never goes idle (broke the E2E suite in CI on 2026-11-09).
+  // Side effect of keeping streaming: Lighthouse/PageSpeed (plain Chrome UA, reads only `head meta`)
+  // reports the product page's description as missing (SEO 92); real crawlers get it in <head>.
+  htmlLimitedBots:
+    /Googlebot|Google-InspectionTool|Mediapartners-Google|AdsBot-Google|bingbot|DuckDuckBot|YandexBot|Applebot|WhatsApp|facebookexternalhit|Twitterbot|TelegramBot|Slackbot|LinkedInBot|Discordbot/i,
   cacheComponents: true,
   partialPrefetching: true,
   images: {

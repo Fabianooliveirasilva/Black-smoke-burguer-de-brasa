@@ -18,6 +18,7 @@ jobs:
   quality:
     name: Lint, types, unit tests, audit
     runs-on: ubuntu-latest
+    timeout-minutes: 10
     steps:
       - uses: actions/checkout@v4
       - uses: pnpm/action-setup@v4
@@ -34,6 +35,7 @@ jobs:
     name: Integration, build, API & E2E (Chromium, Firefox, WebKit)
     needs: quality
     runs-on: ubuntu-latest
+    timeout-minutes: 30
     services:
       postgres:
         image: postgres:17-alpine
@@ -67,6 +69,7 @@ jobs:
     name: Lighthouse (mobile, production build)
     needs: quality
     runs-on: ubuntu-latest
+    timeout-minutes: 20
     services:
       postgres:
         image: postgres:17-alpine
@@ -105,6 +108,7 @@ jobs:
     name: Docker Compose stack (build, migrate, seed, smoke test)
     needs: quality
     runs-on: ubuntu-latest
+    timeout-minutes: 20
     steps:
       - uses: actions/checkout@v4
       - name: Write .env for the stack (throwaway values)
