@@ -18,7 +18,7 @@
 | Vitest integração (Postgres real) | 18/18 |
 | Playwright (api, Chromium desktop, Pixel 7, Firefox, WebKit, iPhone 14) | 145 testes, verdes localmente |
 | CI no GitHub (09/11) | 4/4 jobs verdes: qualidade, testes (3 navegadores), Lighthouse, Docker Compose |
-| Lighthouse CI (mobile) | a11y e boas práticas 100 em todas; home perf 89 (aviso); SEO do produto 92 (limitação do streaming de metadados, crawlers recebem no `<head>`) |
+| Lighthouse CI (mobile) | a11y e boas práticas 100 em todas; performance 90–100 (home 91); SEO do produto 92 (limitação do streaming de metadados, crawlers recebem no `<head>`) |
 
 ## Pendente
 - Mercado Pago com token sandbox real e webhook público (depende de conta do cliente).
